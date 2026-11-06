@@ -444,6 +444,10 @@
   .auth-eye-toggle.showing .icon-eye { display: none; }
   .auth-eye-toggle.showing .icon-eye-off { display: block; }
   .auth-error { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 16px; padding: 10px 12px; border: 1px solid #edc7cb; border-radius: var(--radius-sm); background: var(--red-light); color: var(--red); font-size: 12px; line-height: 1.5; }
+  .auth-error.success { border-color: #b6dcca; background: var(--brand-light); color: var(--brand); }
+  .auth-forgot-row { margin: -7px 0 15px; text-align: right; }
+  .auth-forgot-row a { color: var(--brand); font-size: 12px; font-weight: 600; }
+  .auth-forgot-row a:hover { text-decoration: underline; text-underline-offset: 3px; }
   .form-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
   .form-actions .btn:last-child { flex: 1; }
   .auth-switch { margin-top: 17px; color: var(--text-muted); font-size: 12px; text-align: center; }
@@ -685,7 +689,7 @@
         <input type="text" id="authFullName" placeholder="Your full name" class="auth-input" autocomplete="name">
       </div>
 
-      <div class="form-field">
+      <div class="form-field" id="authEmailField">
         <label class="auth-field-label" for="authEmail">Email address</label>
         <input type="email" id="authEmail" placeholder="you@example.com" class="auth-input" autocomplete="email" inputmode="email">
       </div>
@@ -695,7 +699,7 @@
         <input type="tel" id="authPhone" placeholder="0712 345 678" class="auth-input" autocomplete="tel" inputmode="tel">
       </div>
 
-      <div class="form-field">
+      <div class="form-field" id="authPasswordField">
         <label class="auth-field-label" for="authPassword">Password</label>
         <div class="auth-password-wrap">
           <input type="password" id="authPassword" placeholder="Enter your password" class="auth-input" autocomplete="current-password">
@@ -704,6 +708,10 @@
             <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
           </button>
         </div>
+      </div>
+
+      <div class="auth-forgot-row" id="authForgotRow">
+        <a href="#" onclick="showForgotPassword(event)">Forgot password?</a>
       </div>
 
       <div class="form-field" id="authConfirmField" style="display:none;">
@@ -1026,14 +1034,15 @@
   let lastFocusedElement = null;
 
   function openAuthModal(mode){
-    authMode = mode || 'signin';
+    authMode = ['signin', 'signup', 'forgot', 'reset'].includes(mode) ? mode : 'signin';
     lastFocusedElement = document.activeElement;
     document.getElementById('authFullName').value = '';
     document.getElementById('authEmail').value = '';
     document.getElementById('authPhone').value = '';
     document.getElementById('authPassword').value = '';
     document.getElementById('authPasswordConfirm').value = '';
-    document.getElementById('authError').style.display = 'none';
+    document.getElementById('authSubmitBtn').disabled = false;
+    clearAuthMessage();
     resetPasswordVisibility('authPassword');
     resetPasswordVisibility('authPasswordConfirm');
     updateAuthModalCopy();
@@ -1041,7 +1050,14 @@
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('modal-open');
-    setTimeout(() => (authMode === 'signup' ? document.getElementById('authFullName') : document.getElementById('authEmail')).focus(), 40);
+    setTimeout(() => {
+      const focusTarget = authMode === 'signup'
+        ? document.getElementById('authFullName')
+        : authMode === 'reset'
+          ? document.getElementById('authPassword')
+          : document.getElementById('authEmail');
+      focusTarget.focus();
+    }, 40);
   }
 
   function closeAuthModal(){
@@ -1053,103 +1069,231 @@
     if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') lastFocusedElement.focus();
   }
 
-  function switchAuthMode(e){
-    e.preventDefault();
-    authMode = authMode === 'signin' ? 'signup' : 'signin';
-    document.getElementById('authError').style.display = 'none';
+  function showAuthMessage(message, success = false){
+    const messageEl = document.getElementById('authError');
+    messageEl.textContent = message || '';
+    messageEl.classList.toggle('success', Boolean(message && success));
+    messageEl.style.display = message ? 'block' : 'none';
+  }
+
+  function clearAuthMessage(){
+    showAuthMessage('');
+  }
+
+  function showForgotPassword(e){
+    if (e) e.preventDefault();
+    authMode = 'forgot';
+    document.getElementById('authPassword').value = '';
+    document.getElementById('authPasswordConfirm').value = '';
+    clearAuthMessage();
     updateAuthModalCopy();
+    setTimeout(() => document.getElementById('authEmail').focus(), 0);
+  }
+
+  function switchAuthMode(e, targetMode){
+    e.preventDefault();
+    authMode = targetMode || (authMode === 'signin' ? 'signup' : 'signin');
+    document.getElementById('authPassword').value = '';
+    document.getElementById('authPasswordConfirm').value = '';
+    clearAuthMessage();
+    updateAuthModalCopy();
+    const focusTarget = authMode === 'signup'
+      ? document.getElementById('authFullName')
+      : document.getElementById('authEmail');
+    focusTarget.focus();
   }
 
   function updateAuthModalCopy(){
     const isSignup = authMode === 'signup';
-    document.getElementById('authModalTitle').textContent = isSignup ? 'Create your account' : 'Welcome back';
-    document.getElementById('authModalDescription').textContent = isSignup
-      ? 'Create an account to purchase access and view protected analysis.'
-      : 'Sign in to view protected analysis and manage your access.';
-    document.getElementById('authSubmitBtn').textContent = isSignup ? 'Create account' : 'Sign in';
-    document.getElementById('authSwitchLine').innerHTML = isSignup
-      ? `Already have an account? <a href="#" onclick="switchAuthMode(event)">Sign in</a>`
-      : `Don't have an account? <a href="#" onclick="switchAuthMode(event)">Create one</a>`;
+    const isForgot = authMode === 'forgot';
+    const isReset = authMode === 'reset';
+    const copy = {
+      signin: {
+        title: 'Welcome back',
+        description: 'Sign in to view protected analysis and manage your access.',
+        submit: 'Sign in'
+      },
+      signup: {
+        title: 'Create your account',
+        description: 'Create an account to purchase access and view protected analysis.',
+        submit: 'Create account'
+      },
+      forgot: {
+        title: 'Reset your password',
+        description: 'Enter your account email and we will send you a secure reset link.',
+        submit: 'Send reset link'
+      },
+      reset: {
+        title: 'Choose a new password',
+        description: 'Enter and confirm a new password for your account.',
+        submit: 'Update password'
+      }
+    }[authMode] || null;
+
+    if (!copy) return;
+    document.getElementById('authModalTitle').textContent = copy.title;
+    document.getElementById('authModalDescription').textContent = copy.description;
+    document.getElementById('authSubmitBtn').textContent = copy.submit;
+
+    const switchLine = document.getElementById('authSwitchLine');
+    switchLine.style.display = 'block';
+    switchLine.innerHTML = isSignup
+      ? `Already have an account? <a href="#" onclick="switchAuthMode(event, 'signin')">Sign in</a>`
+      : isForgot
+        ? `Remembered your password? <a href="#" onclick="switchAuthMode(event, 'signin')">Back to sign in</a>`
+        : isReset
+          ? `<a href="#" onclick="switchAuthMode(event, 'forgot')">Need a new reset link?</a>`
+          : `Don't have an account? <a href="#" onclick="switchAuthMode(event, 'signup')">Create one</a>`;
 
     document.getElementById('authNameField').style.display = isSignup ? 'block' : 'none';
+    document.getElementById('authEmailField').style.display = isReset ? 'none' : 'block';
     document.getElementById('authPhoneField').style.display = isSignup ? 'block' : 'none';
-    document.getElementById('authConfirmField').style.display = isSignup ? 'block' : 'none';
-    document.getElementById('authPassword').autocomplete = isSignup ? 'new-password' : 'current-password';
+    document.getElementById('authPasswordField').style.display = isForgot ? 'none' : 'block';
+    document.getElementById('authConfirmField').style.display = (isSignup || isReset) ? 'block' : 'none';
+    document.getElementById('authForgotRow').style.display = authMode === 'signin' ? 'block' : 'none';
+    document.getElementById('authPassword').autocomplete = (isSignup || isReset) ? 'new-password' : 'current-password';
+    document.getElementById('authPassword').placeholder = isReset ? 'At least 6 characters' : 'Enter your password';
+    document.getElementById('authPasswordConfirm').placeholder = isReset ? 'Re-enter your new password' : 'Re-enter your password';
+  }
+
+  function passwordResetRedirectUrl(){
+    return `${window.location.origin}${window.location.pathname}`;
+  }
+
+  async function runAuthSubmit(loadingText, action){
+    const submitBtn = document.getElementById('authSubmitBtn');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = loadingText;
+    try {
+      await action();
+    } catch (error) {
+      showAuthMessage(error?.message || 'The request could not be completed. Please try again.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
   }
 
   async function handleAuthSubmit(){
+    clearAuthMessage();
+    if (authMode === 'forgot') return handleForgotPasswordSubmit();
+    if (authMode === 'reset') return handlePasswordUpdateSubmit();
+
+    const submittedMode = authMode;
     const fullName = document.getElementById('authFullName').value.trim();
     const email = document.getElementById('authEmail').value.trim();
     const phone = document.getElementById('authPhone').value.trim();
     const password = document.getElementById('authPassword').value;
     const passwordConfirm = document.getElementById('authPasswordConfirm').value;
-    const errEl = document.getElementById('authError');
-    errEl.style.background = ''; errEl.style.color = ''; errEl.style.borderColor = '';
-    errEl.style.display = 'none';
 
     if (!email || !password) {
-      errEl.textContent = 'Please enter both email and password.';
-      errEl.style.display = 'block';
+      showAuthMessage('Please enter both email and password.');
       return;
     }
-    if (authMode === 'signup') {
+    if (submittedMode === 'signup') {
       if (!fullName) {
-        errEl.textContent = 'Please enter your name.';
-        errEl.style.display = 'block';
+        showAuthMessage('Please enter your name.');
         return;
       }
       if (!phone) {
-        errEl.textContent = 'Please enter your phone number.';
-        errEl.style.display = 'block';
+        showAuthMessage('Please enter your phone number.');
         return;
       }
       if (password.length < 6) {
-        errEl.textContent = 'Password must be at least 6 characters.';
-        errEl.style.display = 'block';
+        showAuthMessage('Password must be at least 6 characters.');
         return;
       }
       if (password !== passwordConfirm) {
-        errEl.textContent = 'Passwords do not match.';
-        errEl.style.display = 'block';
+        showAuthMessage('Passwords do not match.');
         return;
       }
     }
 
-    const submitBtn = document.getElementById('authSubmitBtn');
-    submitBtn.disabled = true;
-    const originalText = submitBtn.textContent;
-    submitBtn.textContent = 'Please wait…';
+    await runAuthSubmit('Please wait…', async () => {
+      const result = submittedMode === 'signin'
+        ? await sb.auth.signInWithPassword({ email, password })
+        : await sb.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: fullName, phone_number: phone } }
+          });
 
-    const result = authMode === 'signin'
-      ? await sb.auth.signInWithPassword({ email, password })
-      : await sb.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: fullName, phone_number: phone } }
-        });
+      if (result.error) {
+        showAuthMessage(result.error.message);
+        return;
+      }
 
-    submitBtn.disabled = false;
-    submitBtn.textContent = originalText;
+      if (submittedMode === 'signup' && !result.data.session) {
+        // Email confirmation is enabled — no session yet until they click the link.
+        showAuthMessage('Account created. Check your email to confirm before signing in.', true);
+        return;
+      }
 
-    if (result.error) {
-      errEl.textContent = result.error.message;
-      errEl.style.display = 'block';
+      const dest = pendingDestination;
+      closeAuthModal();
+      if (dest) goTo(dest);
+    });
+  }
+
+  async function handleForgotPasswordSubmit(){
+    const emailInput = document.getElementById('authEmail');
+    const email = emailInput.value.trim();
+    if (!email || !emailInput.validity.valid) {
+      showAuthMessage('Enter a valid email address.');
       return;
     }
 
-    if (authMode === 'signup' && !result.data.session) {
-      // Email confirmation is enabled — no session yet until they click the link.
-      errEl.style.background = 'var(--brand-light)';
-      errEl.style.color = 'var(--brand)';
-      errEl.style.borderColor = '#b6dcca';
-      errEl.textContent = 'Account created. Check your email to confirm before signing in.';
-      errEl.style.display = 'block';
+    await runAuthSubmit('Sending…', async () => {
+      const { error } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: passwordResetRedirectUrl()
+      });
+      if (error) {
+        showAuthMessage(error.message);
+        return;
+      }
+
+      // Keep the response generic so the form does not reveal registered emails.
+      showAuthMessage(
+        'If an account exists for that email, a reset link has been sent. Check your inbox and spam folder.',
+        true
+      );
+    });
+  }
+
+  async function handlePasswordUpdateSubmit(){
+    const password = document.getElementById('authPassword').value;
+    const passwordConfirm = document.getElementById('authPasswordConfirm').value;
+    if (password.length < 6) {
+      showAuthMessage('Password must be at least 6 characters.');
+      return;
+    }
+    if (password !== passwordConfirm) {
+      showAuthMessage('Passwords do not match.');
+      return;
+    }
+    if (!currentSession) {
+      showAuthMessage('This reset link is invalid or expired. Request a new reset link below.');
       return;
     }
 
-    const dest = pendingDestination;
-    closeAuthModal();
-    if (dest) goTo(dest);
+    await runAuthSubmit('Updating…', async () => {
+      const { error } = await sb.auth.updateUser({ password });
+      if (error) {
+        showAuthMessage(error.message);
+        return;
+      }
+
+      document.getElementById('authPassword').value = '';
+      document.getElementById('authPasswordConfirm').value = '';
+      if (window.history?.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      showAuthMessage('Password updated successfully. You are now signed in.', true);
+      setTimeout(() => {
+        if (authMode === 'reset') closeAuthModal();
+      }, 1600);
+    });
   }
 
   async function handleSignOut(){
@@ -1205,8 +1349,26 @@
     openAuthModal('signin');
   }
 
-  sb.auth.onAuthStateChange((_event, session) => updateAuthUI(session));
-  sb.auth.getSession().then(({ data }) => updateAuthUI(data.session));
+  function hasRecoveryHash(){
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    return hashParams.get('type') === 'recovery';
+  }
+
+  sb.auth.onAuthStateChange((event, session) => {
+    updateAuthUI(session);
+    if (event === 'PASSWORD_RECOVERY') {
+      pendingDestination = null;
+      openAuthModal('reset');
+    }
+  });
+  sb.auth.getSession().then(({ data }) => {
+    updateAuthUI(data.session);
+    // Fallback for implicit recovery links; PKCE links emit PASSWORD_RECOVERY.
+    if (authMode !== 'reset' && data.session && hasRecoveryHash()) {
+      pendingDestination = null;
+      openAuthModal('reset');
+    }
+  });
   /* =================== END STEP 5 ADDITION =================== */
 
 
