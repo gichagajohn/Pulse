@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="description" content="Football Pulse private administration dashboard.">
+<title>Admin · Football Pulse</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111827'/%3E%3Ctext x='16' y='22' font-family='Arial,sans-serif' font-weight='800' font-size='14' fill='white' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/admin.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#adminMain">Skip to dashboard content</a>
+
+<section id="authView" class="auth-shell" aria-labelledby="authTitle">
+  <div class="auth-brand"><span class="brand-mark">FP</span><span>Football Pulse <strong>Admin</strong></span></div>
+  <div class="auth-card">
+    <p class="eyebrow">Restricted access</p>
+    <h1 id="authTitle">Admin sign in</h1>
+    <p class="muted">Use an explicitly authorised administrator account. Public accounts cannot read dashboard data.</p>
+    <div id="authMessage" class="notice" role="alert" hidden></div>
+    <form id="adminAuthForm" class="auth-form" novalidate>
+      <label for="adminEmail">Email address</label>
+      <input id="adminEmail" name="email" type="email" autocomplete="email" inputmode="email" placeholder="admin@example.com" required>
+      <label for="adminPassword">Password</label>
+      <input id="adminPassword" name="password" type="password" autocomplete="current-password" placeholder="Your password" required>
+      <button id="adminSignInButton" class="button button-primary button-block" type="submit">Sign in securely</button>
+      <button id="adminForgotButton" class="text-button" type="button">Forgot password?</button>
+    </form>
+    <a class="back-link" href="/">← Return to the public website</a>
+  </div>
+  <p class="auth-footnote">Authorised activity only · No service credentials are stored in this page</p>
+</section>
+
+<section id="deniedView" class="auth-shell" aria-labelledby="deniedTitle" hidden>
+  <div class="auth-brand"><span class="brand-mark">FP</span><span>Football Pulse <strong>Admin</strong></span></div>
+  <div class="auth-card">
+    <p class="eyebrow">Access denied</p>
+    <h1 id="deniedTitle">This account is not an administrator</h1>
+    <p id="deniedMessage" class="muted"></p>
+    <p class="muted">Ask an existing administrator to allowlist this account. Admin access is enforced by Supabase, not hidden in the browser.</p>
+    <button id="deniedSignOutButton" class="button button-primary button-block" type="button">Sign out</button>
+    <a class="back-link" href="/">← Return to the public website</a>
+  </div>
+</section>
+
+<div id="loadingView" class="loading-shell" role="status" hidden>
+  <span class="spinner" aria-hidden="true"></span>
+  <p>Verifying administrator access…</p>
+</div>
+
+<div id="appView" class="admin-layout" hidden>
+  <aside class="sidebar">
+    <a class="sidebar-brand" href="/admin.html" aria-label="Football Pulse admin home">
+      <span class="brand-mark">FP</span>
+      <span>Football Pulse <strong>Admin</strong></span>
+    </a>
+    <nav class="admin-nav" aria-label="Admin sections">
+      <button class="nav-item active" type="button" data-tab="overview"><span aria-hidden="true">▦</span> Overview</button>
+      <button class="nav-item" type="button" data-tab="tickets"><span aria-hidden="true">⌁</span> Full tickets</button>
+      <button class="nav-item" type="button" data-tab="users"><span aria-hidden="true">◎</span> Accounts</button>
+      <button class="nav-item" type="button" data-tab="purchases"><span aria-hidden="true">⇄</span> Purchases</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <span class="environment-dot"></span>
+      <span>Production · Read only</span>
+    </div>
+  </aside>
+
+  <div class="admin-workspace">
+    <header class="topbar">
+      <div>
+        <p class="topbar-kicker">Football Pulse</p>
+        <h1 id="pageTitle">Overview</h1>
+      </div>
+      <div class="topbar-actions">
+        <span id="adminIdentity" class="admin-identity"></span>
+        <button id="refreshButton" class="button button-secondary" type="button">Refresh</button>
+        <button id="signOutButton" class="button button-ghost" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <main id="adminMain" class="admin-main" tabindex="-1">
+      <div id="globalAlert" class="notice" role="alert" hidden></div>
+      <p class="data-timestamp">Data current as at <span id="lastUpdated">—</span></p>
+
+      <section id="panel-overview" class="tab-panel" aria-label="Dashboard overview">
+        <div class="metric-grid">
+          <article class="metric-card accent"><span class="metric-label">Total received</span><strong id="totalRevenue">—</strong><small>Confirmed paid subscriptions</small></article>
+          <article class="metric-card"><span class="metric-label">Received today</span><strong id="revenueToday">—</strong><small>Nairobi calendar day</small></article>
+          <article class="metric-card"><span class="metric-label">Last 30 days</span><strong id="revenue30d">—</strong><small>Rolling 30-day revenue</small></article>
+          <article class="metric-card"><span class="metric-label">Accounts</span><strong id="totalUsers">—</strong><small id="newUsers30d">—</small></article>
+          <article class="metric-card"><span class="metric-label">Active passes</span><strong id="activePasses">—</strong><small>Currently within paid access</small></article>
+          <article class="metric-card"><span class="metric-label">Published tickets</span><strong id="publishedTickets">—</strong><small id="totalTickets">—</small></article>
+          <article class="metric-card"><span class="metric-label">Paid purchases</span><strong id="successfulPurchases">—</strong><small id="pendingPurchases">—</small></article>
+          <article class="metric-card"><span class="metric-label">Settled win rate</span><strong id="winRate">—</strong><small id="settledSelections">—</small></article>
+        </div>
+
+        <div class="overview-grid">
+          <article class="card chart-card wide-card">
+            <div class="card-header"><div><p class="eyebrow">Revenue</p><h2>Last 14 days</h2></div><span class="card-note">KSh · Nairobi dates</span></div>
+            <div id="revenueChart" class="revenue-chart" aria-label="Fourteen day revenue chart"></div>
+          </article>
+          <article class="card">
+            <div class="card-header"><div><p class="eyebrow">Plans</p><h2>Revenue by pass</h2></div></div>
+            <div id="planBreakdown" class="breakdown-list"></div>
+          </article>
+          <article class="card">
+            <div class="card-header"><div><p class="eyebrow">Payments</p><h2>Purchase attempts</h2></div></div>
+            <div id="statusBreakdown" class="breakdown-list"></div>
+          </article>
+          <article class="card wide-card">
+            <div class="card-header"><div><p class="eyebrow">Data quality</p><h2>Items requiring attention</h2></div></div>
+            <div id="dataHealth" class="health-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="panel-tickets" class="tab-panel" aria-label="Full tickets" hidden>
+        <div class="section-heading"><div><p class="eyebrow">Private analysis</p><h2>Full tickets</h2><p>Complete ticket text, selections, prices, rationales, and outcomes.</p></div><button class="button button-secondary export-button" data-export="tickets" type="button">Export page CSV</button></div>
+        <div class="filters">
+          <label class="search-field"><span>Search tickets</span><input id="ticketSearch" type="search" placeholder="Date, team, league, outcome…"></label>
+          <label><span>Status</span><select id="ticketStatus"><option value="all">All statuses</option><option value="published">Published</option><option value="no_bet">No bet</option><option value="pending">Pending</option></select></label>
+        </div>
+        <div id="ticketsList" class="ticket-list" aria-live="polite"></div>
+        <div id="ticketsPagination" class="pagination"></div>
+      </section>
+
+      <section id="panel-users" class="tab-panel" aria-label="User accounts" hidden>
+        <div class="section-heading"><div><p class="eyebrow">Customer records</p><h2>Accounts</h2><p>Account details, spending, purchase counts, and current pass access.</p></div><button class="button button-secondary export-button" data-export="users" type="button">Export page CSV</button></div>
+        <div class="filters">
+          <label class="search-field"><span>Search accounts</span><input id="userSearch" type="search" placeholder="Name, email, phone, or user ID…"></label>
+        </div>
+        <div class="table-card"><div class="table-scroll"><table><thead><tr><th>Account</th><th>Phone</th><th>Joined</th><th>Last sign in</th><th>Purchases</th><th>Total spent</th><th>Access</th><th>Role</th></tr></thead><tbody id="usersTableBody"></tbody></table></div></div>
+        <div id="usersPagination" class="pagination"></div>
+      </section>
+
+      <section id="panel-purchases" class="tab-panel" aria-label="Purchases and payments" hidden>
+        <div class="section-heading"><div><p class="eyebrow">Payment ledger</p><h2>Purchases</h2><p>Actual recorded amounts. Pending and failed attempts are not counted as received revenue.</p></div><button class="button button-secondary export-button" data-export="purchases" type="button">Export page CSV</button></div>
+        <div class="filters">
+          <label class="search-field"><span>Search purchases</span><input id="purchaseSearch" type="search" placeholder="Customer, reference, checkout, or user ID…"></label>
+          <label><span>Status</span><select id="purchaseStatus"><option value="all">All statuses</option><option value="success">Success</option><option value="active">Active</option><option value="expired">Expired</option><option value="pending">Pending</option><option value="failed">Failed</option></select></label>
+        </div>
+        <div class="table-card"><div class="table-scroll"><table><thead><tr><th>Created</th><th>Customer</th><th>Plan</th><th>Amount</th><th>Status</th><th>Source</th><th>Reference</th><th>Access expiry</th></tr></thead><tbody id="purchasesTableBody"></tbody></table></div></div>
+        <div id="purchasesPagination" class="pagination"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
