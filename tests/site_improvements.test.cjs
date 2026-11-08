@@ -13,6 +13,8 @@ test('Daily and Weekly prices are KSh 100/500 in display, payment labels, edge f
   assert.match(html, /<div class="price-amount">KSh 100<\/div>/);
   assert.match(html, /<div class="price-amount">KSh 500<\/div>/);
   assert.match(html, /daily: 'Daily Pass, KSh 100', weekly: 'Weekly Pass, KSh 500'/);
+  assert.match(html, /daily: \{ title: 'Daily Pass', duration: '24 hours', amount: 100 \}/);
+  assert.match(html, /weekly: \{ title: 'Weekly Pass', duration: '7 days', amount: 500 \}/);
   assert.doesNotMatch(html, /KSh 1,000|KSh 5,000|KSh 1000|KSh 5000/);
   assert.match(edgeSource, /daily:\s*100/);
   assert.match(edgeSource, /weekly:\s*500/);
@@ -92,15 +94,16 @@ test('checkout uses accurate M-Pesa and responsible-gambling wording', () => {
 });
 
 test('schedule, provider coverage and performance copy do not overclaim', () => {
-  assert.equal((html.match(/Scheduled daily at 07:00 EAT/g) || []).length, 4);
+  assert.equal((html.match(/Scheduled daily at 07:00 EAT/g) || []).length, 5);
   assert.doesNotMatch(html, /Published daily at 07:00 EAT/);
   assert.match(html, /Injuries and weather are included only when available from our providers/);
   assert.match(html, /major leagues and selected competitions/i);
   assert.doesNotMatch(html, /Europe’s top five leagues|Top five European leagues/);
   assert.match(html, /Hit rate alone does not establish profitability/);
   assert.doesNotMatch(html, /64% Win Rate|65\.3% Win Rate|guaranteed winnings/i);
-  assert.match(html, /id="hero-settled-count">Wins and losses published publicly/);
-  assert.match(html, /`\$\{total\} settled selections · Public record`/);
+  assert.match(html, /id="hero-settled-count">Loading…/);
+  assert.match(html, /hero-settled-count'\)\.textContent = `\$\{selections\.length\}`/);
+  assert.match(html, /hero-outcomes'\)\.textContent = `\$\{won\}W · \$\{lost\}L · \$\{outcomeCounts\.void\}V`/);
 });
 
 test('ticket publication time, empty states, retries and no-JavaScript fallback are present', () => {
