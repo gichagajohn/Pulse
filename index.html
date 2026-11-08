@@ -514,7 +514,7 @@
   .footer-brand-mark { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 5px; background: var(--surface-inverse); color: #fff; font-size: 8px; }
   .footer-text { max-width: 680px; color: var(--text-muted); font-size: 11px; line-height: 1.7; }
   .footer-copyright { margin-top: 9px; }
-  .footer-links { display: flex; align-items: center; justify-content: flex-end; gap: 20px; color: var(--text-muted); font-size: 12px; }
+  .footer-links { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 12px 20px; color: var(--text-muted); font-size: 12px; }
   .footer-links a:hover { color: var(--text-main); }
 
   #stat-confidence { color: #67d5a7; }
@@ -708,6 +708,60 @@
     .outcome-panel { padding: 16px; }
     .outcome-item { width: 28px; height: 28px; }
   }
+
+  /* Evidence-led performance, plan comparison, and service transparency */
+  .metric-card .metric-detail { display: block; min-height: 30px; margin-top: 7px; color: var(--text-muted); font-size: 10px; line-height: 1.5; }
+  .metric-card .num.positive { color: var(--brand); }
+  .metric-card .num.negative { color: var(--red); }
+  .performance-coverage { margin: -8px 0 20px; color: var(--text-muted); font-size: 11px; line-height: 1.6; }
+  .performance-method { max-width: 850px; margin: 0 0 24px; padding: 14px 16px; border-left: 2px solid #b6dcca; background: var(--brand-soft); color: var(--text-secondary); font-size: 12px; line-height: 1.7; text-align: left; }
+  .breakdown-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+  .breakdown-box { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-xs); }
+  .breakdown-header { padding: 20px 20px 14px; }
+  .breakdown-table-wrap, .comparison-table-wrap { overflow-x: auto; overscroll-behavior-inline: contain; }
+  .breakdown-table, .comparison-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .breakdown-table { min-width: 470px; }
+  .breakdown-table th, .breakdown-table td { padding: 11px 14px; border-top: 1px solid var(--border); font-size: 11px; text-align: right; white-space: nowrap; }
+  .breakdown-table th { background: var(--surface-subtle); color: var(--text-muted); font-size: 9px; letter-spacing: .055em; text-transform: uppercase; }
+  .breakdown-table th:first-child, .breakdown-table td:first-child { text-align: left; }
+  .breakdown-table td:first-child { max-width: 170px; overflow: hidden; color: var(--text-main); font-weight: 600; text-overflow: ellipsis; }
+  .breakdown-table td { color: var(--text-secondary); }
+  .breakdown-empty { padding: 20px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 12px; }
+  .price-probability-note { margin-top: 12px; color: var(--text-muted); font-size: 10px; line-height: 1.6; }
+  .plan-comparison { margin-top: 36px; }
+  .plan-comparison .section-header { margin-bottom: 18px; }
+  .comparison-table-wrap { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-xs); }
+  .comparison-table { min-width: 660px; }
+  .comparison-table caption { padding: 14px 18px; color: var(--text-muted); font-size: 11px; text-align: left; }
+  .comparison-table th, .comparison-table td { padding: 14px 18px; border-top: 1px solid var(--border); font-size: 12px; text-align: center; }
+  .comparison-table thead th { border-top: 0; background: var(--surface-subtle); color: var(--text-main); font-size: 11px; font-weight: 650; }
+  .comparison-table th:first-child, .comparison-table td:first-child { width: 40%; text-align: left; }
+  .comparison-table tbody th { color: var(--text-secondary); font-weight: 500; }
+  .comparison-table td { color: var(--text-secondary); }
+  .comparison-table .icon-check { display: inline-block; margin: 0; }
+  .comparison-included { color: var(--brand); font-size: 16px; font-weight: 700; line-height: 1; }
+  .comparison-table .comparison-price td, .comparison-table .comparison-price th { background: var(--brand-soft); color: var(--text-main); font-weight: 650; }
+  .about-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .7fr); gap: 24px; align-items: start; }
+  .about-content { padding: 28px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-xs); }
+  .about-section + .about-section { margin-top: 28px; padding-top: 26px; border-top: 1px solid var(--border); }
+  .about-section h3 { margin-bottom: 10px; font-size: 16px; font-weight: 650; }
+  .about-section p, .about-section li { color: var(--text-secondary); font-size: 13px; line-height: 1.75; }
+  .about-section p + p { margin-top: 12px; }
+  .about-section ul { display: grid; gap: 8px; margin-top: 12px; padding-left: 20px; }
+  .support-card { padding: 24px; border: 1px solid #b6dcca; border-radius: var(--radius-md); background: var(--brand-soft); }
+  .support-card h3 { margin-bottom: 10px; font-size: 16px; }
+  .support-card p { margin-bottom: 16px; color: var(--text-secondary); font-size: 12px; line-height: 1.7; }
+  .support-card .btn { width: 100%; }
+  .support-card .support-note { margin: 14px 0 0; color: var(--text-muted); font-size: 10px; }
+
+  @media (max-width: 900px) {
+    .breakdown-grid, .about-layout { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .about-content { padding: 22px 19px; }
+    .comparison-table th, .comparison-table td { padding: 12px 14px; }
+    .performance-method { padding: 12px 14px; }
+  }
 </style>
 </head>
 <body>
@@ -877,8 +931,8 @@
           <span class="pulse-dot" aria-hidden="true"></span>
           Matchday intelligence active
         </div>
-        <h1 id="home-title">Measured football analysis, built on data.</h1>
-        <p>Probability-led match intelligence across major leagues and selected competitions, with disciplined daily selections and a transparent public record.</p>
+        <h1 id="home-title">Football analysis. Backed by data. Measured by results.</h1>
+        <p>Probability-led match analysis, disciplined daily selections, and a transparent public record of every settled prediction—including the losses.</p>
         <div class="hero-actions">
           <button class="btn btn-primary" onclick="goTo('picks')">
             View today’s picks
@@ -893,9 +947,9 @@
             <span class="hero-trust-detail">Settled selections, publicly inspectable</span>
           </div>
           <div class="hero-trust-card">
-            <span class="hero-trust-label">Outcomes</span>
-            <strong class="hero-trust-value" id="hero-outcomes">—</strong>
-            <span class="hero-trust-detail">Wins and losses; voids counted separately</span>
+            <span class="hero-trust-label">Settled win rate</span>
+            <strong class="hero-trust-value" id="hero-win-rate">—</strong>
+            <span class="hero-trust-detail"><span id="hero-outcomes">—</span> · Voids excluded from the rate</span>
           </div>
           <div class="hero-trust-card">
             <span class="hero-trust-label">Today’s ticket</span>
@@ -973,7 +1027,7 @@
         </div>
       </article>
     </div>
-    <p class="method-footnote">Every published outcome appears on the <a class="text-link" href="#" onclick="event.preventDefault(); goTo('performance');">performance page</a>—wins and losses alike.</p>
+    <p class="method-footnote">Every published outcome appears on the <a class="text-link" href="#" onclick="event.preventDefault(); goTo('performance');">performance page</a>—wins and losses alike. Read the <a class="text-link" href="#" onclick="event.preventDefault(); goTo('about');">full methodology and measurement guide</a>.</p>
   </section>
 
   <section class="page" id="page-picks" aria-labelledby="picks-title">
@@ -1029,17 +1083,24 @@
     </div>
 
     <div class="stats-grid">
-      <div class="metric-card"><div class="num" id="perf-total">—</div><div class="label">Total predictions</div></div>
-      <div class="metric-card"><div class="num" id="perf-won">—</div><div class="label">Successful</div></div>
-      <div class="metric-card"><div class="num" id="perf-lost">—</div><div class="label">Unsuccessful</div></div>
-      <div class="metric-card"><div class="num" id="perf-rate">—</div><div class="label">Win rate</div></div>
+      <div class="metric-card"><div class="num" id="perf-total">—</div><div class="label">Total predictions</div><span class="metric-detail">Wins and losses; voids shown separately</span></div>
+      <div class="metric-card"><div class="num" id="perf-won">—</div><div class="label">Successful</div><span class="metric-detail">Settled winning selections</span></div>
+      <div class="metric-card"><div class="num" id="perf-lost">—</div><div class="label">Unsuccessful</div><span class="metric-detail">Losses remain publicly visible</span></div>
+      <div class="metric-card"><div class="num" id="perf-rate">—</div><div class="label">Win rate</div><span class="metric-detail">Wins ÷ decisive selections</span></div>
     </div>
-    <p class="performance-note">Hit rate alone does not establish profitability. Average odds, stake size, voids, and return on stake also matter; this public record includes wins and losses without guaranteeing future results.</p>
+    <div class="stats-grid performance-economics">
+      <div class="metric-card"><div class="num" id="perf-roi">—</div><div class="label">ROI / yield</div><span class="metric-detail">Flat-stake singles; equivalent here</span></div>
+      <div class="metric-card"><div class="num" id="perf-net-units">—</div><div class="label">Net units</div><span class="metric-detail">Profit after one unit per selection</span></div>
+      <div class="metric-card"><div class="num" id="perf-average-odds">—</div><div class="label">Average odds</div><span class="metric-detail">Mean recorded decimal price</span></div>
+      <div class="metric-card"><div class="num" id="perf-streak">—</div><div class="label">Max losing streak</div><span class="metric-detail">Consecutive losses; voids ignored</span></div>
+    </div>
+    <p class="performance-coverage" id="perf-price-coverage">Checking settled-price coverage…</p>
+    <p class="performance-method"><strong>How to read these figures:</strong> each selection is treated as one unit staked at its recorded decimal odds. A win profits <strong>odds − 1</strong>, a loss loses one unit, and a void returns stake. ROI and yield are therefore identical in this view. These are historical model measurements—not customer returns, betting advice, or a guarantee of future results. Hit rate alone does not establish profitability.</p>
 
     <div class="chart-box">
       <div class="chart-header">
         <div>
-          <h3 class="chart-title">14-day performance trend</h3>
+          <h3 class="chart-title">Last 14 matchdays</h3>
           <p class="section-desc">Ticket-level outcomes, ordered by matchday</p>
         </div>
         <div class="chart-legend" aria-label="Chart legend">
@@ -1049,6 +1110,34 @@
       </div>
       <div class="bar-chart" id="bars" aria-live="polite"></div>
     </div>
+
+    <div class="breakdown-grid">
+      <section class="breakdown-box" aria-labelledby="monthly-performance-title">
+        <div class="breakdown-header">
+          <h3 class="chart-title" id="monthly-performance-title">Monthly performance</h3>
+          <p class="section-desc">Latest six months with settled selections</p>
+        </div>
+        <div class="breakdown-table-wrap">
+          <table class="breakdown-table">
+            <thead><tr><th>Month</th><th>Bets</th><th>W–L–V</th><th>Avg odds</th><th>Net units</th><th>ROI</th></tr></thead>
+            <tbody id="performance-monthly"><tr><td colspan="6">Loading monthly record…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="breakdown-box" aria-labelledby="league-performance-title">
+        <div class="breakdown-header">
+          <h3 class="chart-title" id="league-performance-title">League performance</h3>
+          <p class="section-desc">Up to six leagues by sample size</p>
+        </div>
+        <div class="breakdown-table-wrap">
+          <table class="breakdown-table">
+            <thead><tr><th>League</th><th>Bets</th><th>W–L–V</th><th>Avg odds</th><th>Net units</th><th>ROI</th></tr></thead>
+            <tbody id="performance-leagues"><tr><td colspan="6">Loading league record…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <p class="performance-note">Breakdowns describe this historical sample only. Small league or monthly samples do not establish a durable model edge.</p>
   </section>
 
   <section class="page" id="page-pricing" aria-labelledby="pricing-title">
@@ -1099,7 +1188,80 @@
         <button class="btn btn-brand" onclick="payWithMpesa('weekly')">Pay with M-Pesa</button>
       </article>
     </div>
+
+    <section class="plan-comparison" aria-labelledby="plan-comparison-title">
+      <div class="section-header">
+        <div>
+          <div class="section-kicker">Compare access</div>
+          <h3 class="section-title" id="plan-comparison-title">What each plan includes</h3>
+          <p class="section-desc">The public record stays free. Paid passes unlock the current analytical detail.</p>
+        </div>
+      </div>
+      <div class="comparison-table-wrap">
+        <table class="comparison-table">
+          <caption>Daily access lasts 24 hours from confirmed payment; Weekly access lasts 7 days.</caption>
+          <thead><tr><th scope="col">Feature</th><th scope="col">Free</th><th scope="col">Daily</th><th scope="col">Weekly</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Fixtures and kickoff times</th><td><span class="comparison-included" aria-label="Included">✓</span></td><td><span class="comparison-included" aria-label="Included">✓</span></td><td><span class="comparison-included" aria-label="Included">✓</span></td></tr>
+            <tr><th scope="row">Public performance records</th><td><span class="comparison-included" aria-label="Included">✓</span></td><td><span class="comparison-included" aria-label="Included">✓</span></td><td><span class="comparison-included" aria-label="Included">✓</span></td></tr>
+            <tr><th scope="row">Predictions and selected markets</th><td aria-label="Not included">—</td><td><span class="comparison-included" aria-label="Included">✓</span></td><td><span class="comparison-included" aria-label="Included">✓</span></td></tr>
+            <tr><th scope="row">Recorded odds and price-implied probability</th><td aria-label="Not included">—</td><td><span class="comparison-included" aria-label="Included">✓</span></td><td><span class="comparison-included" aria-label="Included">✓</span></td></tr>
+            <tr><th scope="row">Model confidence and risk context</th><td aria-label="Not included">—</td><td><span class="comparison-included" aria-label="Included">✓</span></td><td><span class="comparison-included" aria-label="Included">✓</span></td></tr>
+            <tr><th scope="row">Detailed match analysis</th><td aria-label="Not included">—</td><td><span class="comparison-included" aria-label="Included">✓</span></td><td><span class="comparison-included" aria-label="Included">✓</span></td></tr>
+            <tr><th scope="row">Access window</th><td>Ongoing public access</td><td>24 hours</td><td>7 days</td></tr>
+            <tr class="comparison-price"><th scope="row">Price</th><td>KSh 0</td><td>KSh 100</td><td>KSh 500</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
     <p class="payment-assurance">Secure M-Pesa STK Push · No card required · Access activates after payment confirmation.<br><strong>18+ only.</strong> Analysis is informational and never guarantees winnings.</p>
+  </section>
+
+  <section class="page" id="page-about" aria-labelledby="about-title">
+    <a href="#" class="legal-back" onclick="event.preventDefault(); goTo('home');">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5m6-6l-6 6 6 6"/></svg>
+      Back to overview
+    </a>
+    <div class="section-header">
+      <div>
+        <div class="section-kicker">About Football Pulse</div>
+        <h2 class="section-title" id="about-title">Open methods. Inspectable records. Clear limits.</h2>
+        <p class="section-desc">What the service does, how selections are produced, and how the public record should be interpreted.</p>
+      </div>
+    </div>
+    <div class="about-layout">
+      <article class="about-content">
+        <section class="about-section">
+          <h3>A football analysis service—not a bookmaker</h3>
+          <p>Football Pulse publishes probability-led football analysis and time-limited premium access to current selections. It does not accept bets, hold betting stakes, or promise returns. The service is informational and restricted to adults aged 18 and over.</p>
+        </section>
+        <section class="about-section">
+          <h3>Data and predictive core</h3>
+          <p>The predictive core uses a <strong>Dixon–Coles-adjusted Poisson</strong> framework, supported by market baselines, price checks, calibration safeguards, and a separate selection-risk review. Fixtures, team statistics, bookmaker prices, and settled results come from the platform’s integrated data providers.</p>
+          <ul>
+            <li>Only fixtures with sufficient usable data and executable recorded prices qualify.</li>
+            <li>Availability varies by competition and provider coverage; missing information is not invented.</li>
+            <li>Injuries and weather are considered only when available. Neither is claimed to guarantee better predictions.</li>
+            <li>“No Bet” remains a valid outcome when no selection improves risk-adjusted utility.</li>
+          </ul>
+        </section>
+        <section class="about-section">
+          <h3>Probability, confidence, and price are different</h3>
+          <p>Model confidence is a rating, not a guarantee and not automatically a calibrated probability for an individual market. Price-implied probability is calculated as <strong>1 ÷ decimal odds</strong> and includes bookmaker margin. Football Pulse does not display an expected-value edge unless the required probability and executable-price inputs are genuinely available.</p>
+        </section>
+        <section class="about-section">
+          <h3>How performance is measured</h3>
+          <p>The public dashboard uses settled published selections and retains wins, losses, and voids. Economic metrics use one-unit flat-stake singles at the recorded odds: wins profit odds minus one, losses lose one unit, and voids return stake. ROI and yield are equivalent under this convention.</p>
+          <p>These figures describe historical model output, not a customer’s actual betting returns. Monthly and league splits can contain small samples and should not be treated as proof of a lasting advantage.</p>
+        </section>
+      </article>
+      <aside class="support-card" aria-labelledby="payment-help-title">
+        <h3 id="payment-help-title">Paid but cannot access?</h3>
+        <p><strong>Do not pay again.</strong> Email support with your M-Pesa receipt, the approximate payment time, and the account email. Payment status must be reconciled with the provider before access can be restored.</p>
+        <a class="btn btn-brand" href="mailto:jp925196@gmail.com?subject=Football%20Pulse%20Paid%20Access%20Support">Contact paid-access support</a>
+        <p class="support-note">Support can investigate interrupted access. Never share your M-Pesa PIN, password, or full authentication details.</p>
+      </aside>
+    </div>
   </section>
 
   <section class="page" id="page-terms" aria-labelledby="terms-title">
@@ -1115,8 +1277,9 @@
           <p><strong>1. What this service is.</strong> Football Pulse provides statistical, probability-based analysis of football matches for informational purposes. Picks reflect a model's output, not a guarantee of any outcome. Sports outcomes are inherently uncertain; no analysis, however rigorous, can predict results with certainty.</p>
           <p><strong>2. Eligibility.</strong> This service is intended for users aged 18 and over. By purchasing access, you confirm you meet this requirement and that engaging with sports-related predictions is legal in your jurisdiction.</p>
           <p><strong>3. Payments.</strong> Payments are processed via M-Pesa through a licensed third-party payment processor. Daily and Weekly passes grant time-limited access to that period's published analysis, as described on the Pricing page. Access is granted after payment confirmation. Purchases are non-refundable once a pass has been activated, except where required by law.</p>
-          <p><strong>4. No financial or betting advice.</strong> Nothing on this site constitutes financial, betting, or professional advice. Any decisions made based on this content are made entirely at your own discretion and risk.</p>
-          <p><strong>5. Responsible use.</strong> Gambling involves financial risk. Please engage responsibly and within your means. If you feel your relationship with gambling has become harmful, please seek independent support.</p>
+          <p><strong>4. Interrupted payments or access.</strong> If money has left your account but your pass has not activated, do not initiate another payment. Contact support with your M-Pesa receipt, approximate payment time, and account email. Football Pulse will reconcile the provider record before restoring access or investigating a duplicate or incorrect charge. A pending, missing, or failed provider transaction is not treated as a successful payment.</p>
+          <p><strong>5. No financial or betting advice.</strong> Nothing on this site constitutes financial, betting, or professional advice. Any decisions made based on this content are made entirely at your own discretion and risk.</p>
+          <p><strong>6. Responsible use.</strong> Gambling involves financial risk. Please engage responsibly and within your means. If you feel your relationship with gambling has become harmful, please seek independent support.</p>
           <p class="legal-note">This is a general summary provided for transparency and is not a substitute for formal legal terms drafted for your specific business and jurisdiction.</p>
         </div>
       </div>
@@ -1152,6 +1315,7 @@
       <p class="footer-text footer-copyright">&copy; <span id="footer-year"></span> Football Pulse. All rights reserved.</p>
     </div>
     <nav class="footer-links" aria-label="Legal and support">
+      <a href="#" onclick="event.preventDefault(); goTo('about');">About &amp; methodology</a>
       <a href="#" onclick="event.preventDefault(); goTo('terms');">Terms</a>
       <a href="#" onclick="event.preventDefault(); goTo('privacy');">Privacy</a>
       <a href="mailto:jp925196@gmail.com?subject=Football%20Pulse%20Support">Support</a>
@@ -1698,6 +1862,7 @@
       const displayedKickoff = kickoffLabel ? escapeHTML(kickoffLabel) : ticketDate;
       const market = escapeHTML(p.market || '—');
       const rationale = escapeHTML(p.rationale || '');
+      const impliedProbability = PublicInsights.priceImpliedProbability(p.odds);
       return `
         <article class="card" aria-label="${homeTeam} versus ${awayTeam}">
           <div class="card-header">
@@ -1712,9 +1877,11 @@
           <div class="card-body">
             ${p.is_unlocked ? `
               <div class="data-row"><span class="data-label">Selected market</span><span class="data-value highlight">${market}</span></div>
-              <div class="data-row"><span class="data-label">Odds</span><span class="data-value">${p.odds != null ? Number(p.odds).toFixed(2) : '—'}</span></div>
-              ${p.final_confidence != null ? `<div class="data-row"><span class="data-label">Model confidence</span><span class="data-value">${Math.round(p.final_confidence * 100)}%</span></div>` : ''}
-              ${rationale ? `<div class="rationale-text">${rationale}</div>` : ''}
+              <div class="data-row"><span class="data-label">Decimal odds</span><span class="data-value">${p.odds != null ? Number(p.odds).toFixed(2) : '—'}</span></div>
+              ${impliedProbability != null ? `<div class="data-row"><span class="data-label">Price-implied probability</span><span class="data-value">${(impliedProbability * 100).toFixed(1)}%</span></div>` : ''}
+              ${p.final_confidence != null ? `<div class="data-row"><span class="data-label">Model rating (ticket)</span><span class="data-value">${Math.round(p.final_confidence * 100)}%</span></div>` : ''}
+              <p class="price-probability-note">Model rating is not a selection probability. Price-implied probability is 1 ÷ decimal odds and includes bookmaker margin.</p>
+              ${rationale ? `<div class="rationale-text"><strong>Analysis</strong><br>${rationale}</div>` : ''}
             ` : `
               <div class="locked-state">
                 <div class="locked-copy">
@@ -1853,11 +2020,61 @@
 
   /* ===================================================================
      STEP 4 ADDITION: live Performance page — real aggregate stats and
-     14-day trend, both computed from data already in Supabase. All
+     latest-14-matchday trend, both computed from data already in Supabase. All
      public/safe (no predictions, just win/loss/void counts).
      =================================================================== */
+  function formatPerformancePercent(value, signed = false){
+    if (value == null || !Number.isFinite(value)) return '—';
+    const sign = signed && value > 0 ? '+' : '';
+    return `${sign}${(value * 100).toFixed(1)}%`;
+  }
+
+  function formatPerformanceUnits(value){
+    if (value == null || !Number.isFinite(value)) return '—';
+    return `${value > 0 ? '+' : ''}${value.toFixed(2)} u`;
+  }
+
+  function formatPerformanceMonth(key){
+    if (!/^\d{4}-\d{2}$/.test(key)) return key;
+    return new Date(`${key}-01T00:00:00Z`).toLocaleDateString('en-GB', {
+      month: 'short', year: 'numeric', timeZone: 'UTC'
+    });
+  }
+
+  function setPerformanceTone(id, value){
+    const element = document.getElementById(id);
+    element.classList.remove('positive', 'negative');
+    if (value != null && value > 0) element.classList.add('positive');
+    if (value != null && value < 0) element.classList.add('negative');
+  }
+
+  function renderPerformanceBreakdowns(selections){
+    const renderRows = (groups, emptyLabel) => groups.length ? groups.map(group => `
+      <tr>
+        <td title="${escapeHTML(group.key)}">${escapeHTML(group.label)}</td>
+        <td>${group.selections}</td>
+        <td>${group.wins}–${group.losses}–${group.voids}</td>
+        <td>${group.averageOdds == null ? '—' : group.averageOdds.toFixed(2)}</td>
+        <td>${formatPerformanceUnits(group.netUnits)}</td>
+        <td>${formatPerformancePercent(group.roi, true)}</td>
+      </tr>
+    `).join('') : `<tr><td colspan="6">${emptyLabel}</td></tr>`;
+
+    const monthly = PublicInsights.groupPerformance(selections, 'month', 6).map(group => ({
+      ...group, label: formatPerformanceMonth(group.key)
+    }));
+    const leagues = PublicInsights.groupPerformance(selections, 'league', 6).map(group => ({
+      ...group, label: group.key
+    }));
+    document.getElementById('performance-monthly').innerHTML = renderRows(monthly, 'No monthly record yet.');
+    document.getElementById('performance-leagues').innerHTML = renderRows(leagues, 'No league record yet.');
+  }
+
   async function renderPerformance(){
-    const metricIds = ['perf-total', 'perf-won', 'perf-lost', 'perf-rate'];
+    const metricIds = [
+      'perf-total', 'perf-won', 'perf-lost', 'perf-rate',
+      'perf-roi', 'perf-net-units', 'perf-average-odds', 'perf-streak'
+    ];
     metricIds.forEach(id => {
       document.getElementById(id).innerHTML = '<span class="skeleton-line md" aria-label="Loading"></span>';
     });
@@ -1868,20 +2085,37 @@
       ${[48,72,42,88,60,94,55,78,46,84,66,92,58,74].map(height => `<span class="skeleton-bar" style="height:${height}%" aria-hidden="true"></span>`).join('')}
     </div>`;
 
-    // Use the settled selections as the single source of truth. This keeps
-    // cards and trend aligned even if ticket-level outcome syncing is delayed.
-    const { data, error } = await sb
-      .from('ticket_selections_safe')
-      .select('id, fixture_id, ticket_date, outcome')
-      .in('outcome', ['win', 'loss', 'void'])
-      .lt('ticket_date', todayEAT)
-      .order('ticket_date', { ascending: false })
-      .order('id', { ascending: false });
+    // Settled public rows are the single source of truth for outcome and
+    // economic metrics. No private prediction logs or customer stakes are read.
+    let data, error;
+    try {
+      const response = await sb
+        .from('ticket_selections_safe')
+        .select('id, fixture_id, ticket_date, outcome, odds, league')
+        .in('outcome', ['win', 'loss', 'void'])
+        .lt('ticket_date', todayEAT)
+        .order('ticket_date', { ascending: false })
+        .order('id', { ascending: false });
+      data = response.data;
+      error = response.error;
+    } catch (networkError) {
+      error = networkError;
+    }
 
     bars.setAttribute('aria-busy', 'false');
     if (error) {
       console.error('[Supabase] Failed to load performance:', error.message);
-      metricIds.forEach(id => { document.getElementById(id).textContent = '—'; });
+      metricIds.forEach(id => {
+        const element = document.getElementById(id);
+        element.classList.remove('positive', 'negative');
+        element.textContent = '—';
+      });
+      document.getElementById('hero-settled-count').textContent = 'Unavailable';
+      document.getElementById('hero-win-rate').textContent = '—';
+      document.getElementById('hero-outcomes').textContent = 'Public record unavailable';
+      document.getElementById('perf-price-coverage').textContent = 'Settled-price coverage is temporarily unavailable.';
+      document.getElementById('performance-monthly').innerHTML = '<tr><td colspan="6">Monthly record unavailable.</td></tr>';
+      document.getElementById('performance-leagues').innerHTML = '<tr><td colspan="6">League record unavailable.</td></tr>';
       bars.innerHTML = `<div class="state-panel error">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
         <div><span class="state-title">Performance unavailable</span>Settled performance could not be retrieved right now.</div>
@@ -1892,17 +2126,31 @@
 
     const selections = uniquePublishedSelections(data);
     const outcomeCounts = PublicInsights.countOutcomes(selections);
+    const economics = PublicInsights.calculatePerformance(selections);
     const won = outcomeCounts.win;
     const lost = outcomeCounts.loss;
     const total = outcomeCounts.total;
-    if (selections.length > 0) {
-      document.getElementById('hero-settled-count').textContent = `${selections.length}`;
-      document.getElementById('hero-outcomes').textContent = `${won}W · ${lost}L · ${outcomeCounts.void}V`;
-    }
+
+    document.getElementById('hero-settled-count').textContent = `${selections.length}`;
+    document.getElementById('hero-outcomes').textContent = `${won}W · ${lost}L · ${outcomeCounts.void}V`;
+    document.getElementById('hero-win-rate').textContent = formatPerformancePercent(economics.winRate);
     document.getElementById('perf-total').textContent = total;
     document.getElementById('perf-won').textContent = won;
     document.getElementById('perf-lost').textContent = lost;
-    document.getElementById('perf-rate').textContent = total > 0 ? `${((won / total) * 100).toFixed(1)}%` : '—';
+    document.getElementById('perf-rate').textContent = formatPerformancePercent(economics.winRate);
+    document.getElementById('perf-roi').textContent = formatPerformancePercent(economics.roi, true);
+    document.getElementById('perf-net-units').textContent = formatPerformanceUnits(economics.netUnits);
+    document.getElementById('perf-average-odds').textContent = economics.averageOdds == null ? '—' : economics.averageOdds.toFixed(2);
+    document.getElementById('perf-streak').textContent = selections.length ? `${economics.maxLosingStreak}` : '—';
+    setPerformanceTone('perf-roi', economics.roi);
+    setPerformanceTone('perf-net-units', economics.netUnits);
+
+    const coverage = document.getElementById('perf-price-coverage');
+    if (!selections.length) coverage.textContent = 'No settled selections are available yet.';
+    else if (economics.pricedCount === selections.length) coverage.textContent = `${economics.pricedCount} of ${selections.length} settled selections have valid recorded odds. Economic metrics use this complete settled sample.`;
+    else coverage.textContent = `${economics.pricedCount} of ${selections.length} settled selections have valid recorded odds. ROI and net units are unavailable until every row is priced; missing prices are not treated as wins, losses, or zero odds.`;
+
+    renderPerformanceBreakdowns(selections);
 
     if (selections.length === 0) {
       bars.innerHTML = `<div class="state-panel">
@@ -1948,6 +2196,7 @@
     results: 'Settled Picks — Football Pulse',
     performance: 'Model Performance — Football Pulse',
     pricing: 'Access Plans — Football Pulse',
+    about: 'About & Methodology — Football Pulse',
     terms: 'Terms of Service — Football Pulse',
     privacy: 'Privacy Policy — Football Pulse'
   };
@@ -2206,5 +2455,5 @@
   document.getElementById('footer-year').textContent = new Date().getFullYear();
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2d10f9fa9534530',t:'MTc4NzA1NzYwMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a30bd5d88d2e4eda',t:'MTc4NzY3Mzg5NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
