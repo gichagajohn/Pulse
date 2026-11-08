@@ -48,11 +48,11 @@ function escapeHTML(value) {
 
 function createHarness() {
   const document = { elements: {}, filters: [] };
-  const ids = ['results-list', 'results-count', 'outcome-strip', 'payment-step-request', 'payment-step-prompt', 'payment-step-confirm', 'payment-step-access'];
+  const ids = ['results-list', 'results-count', 'outcome-strip', 'ticket-results', 'payment-step-request', 'payment-step-prompt', 'payment-step-confirm', 'payment-step-access'];
   ids.forEach(id => { document.elements[id] = new FakeElement(id); });
   document.elements['results-list'].setAttribute('aria-busy', 'false');
   const labels = ['Request STK push', 'STK prompt sent', 'Provider confirmation', 'Access activated'];
-  ids.slice(3).forEach((id, index) => { document.elements[id].label = { textContent: labels[index] }; });
+  ids.filter(id => id.startsWith('payment-step-')).forEach((id, index) => { document.elements[id].label = { textContent: labels[index] }; });
   ['all', 'win', 'loss', 'void'].forEach(filter => {
     const button = new FakeElement(`filter-${filter}`);
     button.dataset.resultFilter = filter;
@@ -66,6 +66,7 @@ function createHarness() {
     PublicInsights,
     escapeHTML,
     formatDisplayDate: date => date,
+    formatPerformanceUnits: value => value == null ? '—' : `${value > 0 ? '+' : ''}${value.toFixed(2)} u`,
     console
   });
   vm.runInContext(resultsSource, context);
@@ -104,6 +105,26 @@ test('recent outcome strip uses W/L/V text and accessible fixture labels rather 
   ['outcome-item void', 'outcome-item loss', 'outcome-item win'].forEach(className => assert.match(strip, new RegExp(className)));
   ['Gamma versus Gamma Away — void', 'Beta versus Beta Away — loss', 'Alpha versus Alpha Away — win'].forEach(label => assert.match(strip, new RegExp(label)));
   assert.ok(strip.indexOf('Gamma') < strip.indexOf('Beta') && strip.indexOf('Beta') < strip.indexOf('Alpha'));
+});
+
+test('recent ticket table shows whole-accumulator outcomes and excludes single-leg tickets', () => {
+  const { context, document } = createHarness();
+  context.__ticketRows = [
+    { id: 1, ticket_id: 20, ticket_date: '2026-11-07', outcome: 'win', odds: 1.5 },
+    { id: 2, ticket_id: 20, ticket_date: '2026-11-07', outcome: 'win', odds: 2 },
+    { id: 3, ticket_id: 21, ticket_date: '2026-11-08', outcome: 'win', odds: 1.5 },
+    { id: 4, ticket_id: 21, ticket_date: '2026-11-08', outcome: 'loss', odds: 2 },
+    { id: 5, ticket_id: 22, ticket_date: '2026-11-08', outcome: 'win', odds: 2 },
+    { id: 6, ticket_id: 23, ticket_date: '2026-11-09', outcome: 'win', odds: 2 },
+    { id: 7, ticket_id: 23, ticket_date: '2026-11-09', outcome: 'pending', odds: null }
+  ];
+  context.renderTicketResults(context.__ticketRows);
+  const rendered = document.elements['ticket-results'].innerHTML;
+  assert.match(rendered, /#20[\s\S]*?3\.00[\s\S]*?tag win[\s\S]*?\+2\.00 u/);
+  assert.match(rendered, /#21[\s\S]*?tag loss[\s\S]*?-1\.00 u/);
+  assert.match(rendered, /#23[\s\S]*?tag pending/);
+  assert.doesNotMatch(rendered, /#22/);
+  assert.ok(rendered.indexOf('#23') < rendered.indexOf('#21') && rendered.indexOf('#21') < rendered.indexOf('#20'));
 });
 
 test('payment stepper never activates access before provider success', () => {

@@ -357,7 +357,7 @@
   .tag { width: fit-content; display: inline-flex; align-items: center; justify-content: center; padding: 3px 8px; border: 1px solid currentColor; border-radius: var(--radius-xs); font-size: 10px; font-weight: 700; letter-spacing: .06em; line-height: 18px; text-transform: uppercase; }
   .tag.win { border-color: #abd9c4; background: var(--brand-light); color: var(--brand); }
   .tag.loss { border-color: #ecc4c8; background: var(--red-light); color: var(--red); }
-  .tag.void { border-color: var(--border); background: var(--surface-subtle); color: var(--text-muted); }
+  .tag.void, .tag.pending { border-color: var(--border); background: var(--surface-subtle); color: var(--text-muted); }
   .result-teams { min-width: 0; color: var(--text-main); font-size: 14px; font-weight: 600; }
   .result-score { display: inline-block; min-width: 40px; color: var(--text-main); font-size: 14px; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
   .result-meta { min-width: 0; overflow: hidden; color: var(--text-secondary); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
@@ -518,8 +518,8 @@
   .footer-links a:hover { color: var(--text-main); }
 
   #stat-confidence { color: #67d5a7; }
-  #perf-won { color: var(--brand); }
-  #perf-lost { color: var(--red); }
+  #perf-won, #acca-won { color: var(--brand); }
+  #perf-lost, #acca-lost { color: var(--red); }
   #stat-risk { color: #f1c36d; }
   .results-shell .state-panel { border: 0; border-radius: 0; box-shadow: none; }
   .bar-chart > .state-panel { width: 100%; align-self: stretch; margin-bottom: 18px; }
@@ -716,11 +716,15 @@
   .performance-coverage { margin: -8px 0 20px; color: var(--text-muted); font-size: 11px; line-height: 1.6; }
   .performance-method { max-width: 850px; margin: 0 0 24px; padding: 14px 16px; border-left: 2px solid #b6dcca; background: var(--brand-soft); color: var(--text-secondary); font-size: 12px; line-height: 1.7; text-align: left; }
   .breakdown-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+  .acca-breakdown { grid-template-columns: 1fr; }
+  .diagnostics-header { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border); }
   .breakdown-box { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-xs); }
   .breakdown-header { padding: 20px 20px 14px; }
   .breakdown-table-wrap, .comparison-table-wrap { overflow-x: auto; overscroll-behavior-inline: contain; }
   .breakdown-table, .comparison-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
   .breakdown-table { min-width: 470px; }
+  .ticket-record { margin: 0 0 18px; }
+  .ticket-record-table { min-width: 720px; }
   .breakdown-table th, .breakdown-table td { padding: 11px 14px; border-top: 1px solid var(--border); font-size: 11px; text-align: right; white-space: nowrap; }
   .breakdown-table th { background: var(--surface-subtle); color: var(--text-muted); font-size: 9px; letter-spacing: .055em; text-transform: uppercase; }
   .breakdown-table th:first-child, .breakdown-table td:first-child { text-align: left; }
@@ -947,7 +951,7 @@
             <span class="hero-trust-detail">Settled selections, publicly inspectable</span>
           </div>
           <div class="hero-trust-card">
-            <span class="hero-trust-label">Settled win rate</span>
+            <span class="hero-trust-label">Selection win rate</span>
             <strong class="hero-trust-value" id="hero-win-rate">—</strong>
             <span class="hero-trust-detail"><span id="hero-outcomes">—</span> · Voids excluded from the rate</span>
           </div>
@@ -1065,6 +1069,18 @@
       </div>
       <ol class="outcome-strip" id="outcome-strip" aria-label="Recent settled outcomes"><li class="outcome-empty">Loading recent outcomes…</li></ol>
     </div>
+    <section class="breakdown-box ticket-record" aria-labelledby="ticket-record-title">
+      <div class="breakdown-header">
+        <h3 class="chart-title" id="ticket-record-title">Recent accumulator tickets</h3>
+        <p class="section-desc">Original multi-leg tickets · whole-ticket outcomes and one-unit returns</p>
+      </div>
+      <div class="breakdown-table-wrap">
+        <table class="breakdown-table ticket-record-table">
+          <thead><tr><th>Date</th><th>Ticket</th><th>Legs</th><th>Posted odds</th><th>Outcome</th><th>Net units</th></tr></thead>
+          <tbody id="ticket-results"><tr><td colspan="6">Loading original tickets…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
     <div class="results-shell">
       <div class="results-head" aria-hidden="true">
         <span>Outcome</span><span>Fixture</span><span>Market</span><span>Date</span>
@@ -1076,32 +1092,32 @@
   <section class="page" id="page-performance" aria-labelledby="performance-title">
     <div class="section-header">
       <div>
-        <div class="section-kicker">Verified outcomes</div>
-        <h2 class="section-title" id="performance-title">Model performance</h2>
-        <p class="section-desc">Calculated from settled historical selections. Voids are excluded from the win-rate calculation.</p>
+        <div class="section-kicker">Original published tickets</div>
+        <h2 class="section-title" id="performance-title">Accumulator performance</h2>
+        <p class="section-desc">One unit per original accumulator. Only complete, settled tickets enter this record; single-leg tickets and pending accumulators are excluded.</p>
       </div>
     </div>
 
     <div class="stats-grid">
-      <div class="metric-card"><div class="num" id="perf-total">—</div><div class="label">Total predictions</div><span class="metric-detail">Wins and losses; voids shown separately</span></div>
-      <div class="metric-card"><div class="num" id="perf-won">—</div><div class="label">Successful</div><span class="metric-detail">Settled winning selections</span></div>
-      <div class="metric-card"><div class="num" id="perf-lost">—</div><div class="label">Unsuccessful</div><span class="metric-detail">Losses remain publicly visible</span></div>
-      <div class="metric-card"><div class="num" id="perf-rate">—</div><div class="label">Win rate</div><span class="metric-detail">Wins ÷ decisive selections</span></div>
+      <div class="metric-card"><div class="num" id="acca-total">—</div><div class="label">Settled accumulators</div><span class="metric-detail">Complete original multi-leg tickets</span></div>
+      <div class="metric-card"><div class="num" id="acca-won">—</div><div class="label">Winning tickets</div><span class="metric-detail">Every active leg won</span></div>
+      <div class="metric-card"><div class="num" id="acca-lost">—</div><div class="label">Losing tickets</div><span class="metric-detail">At least one leg lost</span></div>
+      <div class="metric-card"><div class="num" id="acca-rate">—</div><div class="label">Accumulator win rate</div><span class="metric-detail">Winning ÷ decisive tickets</span></div>
     </div>
     <div class="stats-grid performance-economics">
-      <div class="metric-card"><div class="num" id="perf-roi">—</div><div class="label">ROI / yield</div><span class="metric-detail">Flat-stake singles; equivalent here</span></div>
-      <div class="metric-card"><div class="num" id="perf-net-units">—</div><div class="label">Net units</div><span class="metric-detail">Profit after one unit per selection</span></div>
-      <div class="metric-card"><div class="num" id="perf-average-odds">—</div><div class="label">Average odds</div><span class="metric-detail">Mean recorded decimal price</span></div>
-      <div class="metric-card"><div class="num" id="perf-streak">—</div><div class="label">Max losing streak</div><span class="metric-detail">Consecutive losses; voids ignored</span></div>
+      <div class="metric-card"><div class="num" id="acca-roi">—</div><div class="label">ROI / yield</div><span class="metric-detail">One unit per settled accumulator</span></div>
+      <div class="metric-card"><div class="num" id="acca-net-units">—</div><div class="label">Net units</div><span class="metric-detail">Whole-ticket profit after stake</span></div>
+      <div class="metric-card"><div class="num" id="acca-average-odds">—</div><div class="label">Average combined odds</div><span class="metric-detail">Mean original posted combination</span></div>
+      <div class="metric-card"><div class="num" id="acca-streak">—</div><div class="label">Max ticket losing streak</div><span class="metric-detail">Consecutive losing accumulators</span></div>
     </div>
-    <p class="performance-coverage" id="perf-price-coverage">Checking settled-price coverage…</p>
-    <p class="performance-method"><strong>How to read these figures:</strong> each selection is treated as one unit staked at its recorded decimal odds. A win profits <strong>odds − 1</strong>, a loss loses one unit, and a void returns stake. ROI and yield are therefore identical in this view. These are historical model measurements—not customer returns, betting advice, or a guarantee of future results. Hit rate alone does not establish profitability.</p>
+    <p class="performance-coverage" id="acca-price-coverage">Checking original-ticket and price coverage…</p>
+    <p class="performance-method"><strong>Accumulator accounting:</strong> each original multi-leg ticket is treated as one unit staked. Any losing leg loses the unit. If every active leg wins, profit is effective combined odds − 1. Void legs are removed from the effective combination; an all-void ticket returns stake. ROI and yield are equivalent under this convention. These are historical model measurements—not customer returns or a guarantee of future results.</p>
 
     <div class="chart-box">
       <div class="chart-header">
         <div>
-          <h3 class="chart-title">Last 14 matchdays</h3>
-          <p class="section-desc">Ticket-level outcomes, ordered by matchday</p>
+          <h3 class="chart-title">Last 14 settled accumulators</h3>
+          <p class="section-desc">Whole-ticket outcomes, ordered by original matchday and ticket ID</p>
         </div>
         <div class="chart-legend" aria-label="Chart legend">
           <span class="legend-item"><span class="legend-dot"></span>Win</span>
@@ -1111,10 +1127,47 @@
       <div class="bar-chart" id="bars" aria-live="polite"></div>
     </div>
 
+    <div class="breakdown-grid acca-breakdown">
+      <section class="breakdown-box" aria-labelledby="acca-monthly-title">
+        <div class="breakdown-header">
+          <h3 class="chart-title" id="acca-monthly-title">Monthly accumulator performance</h3>
+          <p class="section-desc">Latest six months with complete settled accumulators</p>
+        </div>
+        <div class="breakdown-table-wrap">
+          <table class="breakdown-table">
+            <thead><tr><th>Month</th><th>Tickets</th><th>W–L–V</th><th>Avg combined</th><th>Net units</th><th>ROI</th></tr></thead>
+            <tbody id="performance-acca-monthly"><tr><td colspan="6">Loading accumulator record…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="section-header diagnostics-header">
+      <div>
+        <div class="section-kicker">Model diagnostics</div>
+        <h3 class="section-title">Selection diagnostics — flat-stake singles</h3>
+        <p class="section-desc">Individual selection quality, calculated separately from accumulator performance. Voids are excluded from the selection win-rate calculation.</p>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="metric-card"><div class="num" id="perf-total">—</div><div class="label">Total predictions</div><span class="metric-detail">Wins and losses; voids shown separately</span></div>
+      <div class="metric-card"><div class="num" id="perf-won">—</div><div class="label">Successful</div><span class="metric-detail">Settled winning selections</span></div>
+      <div class="metric-card"><div class="num" id="perf-lost">—</div><div class="label">Unsuccessful</div><span class="metric-detail">Losses remain publicly visible</span></div>
+      <div class="metric-card"><div class="num" id="perf-rate">—</div><div class="label">Selection win rate</div><span class="metric-detail">Wins ÷ decisive selections</span></div>
+    </div>
+    <div class="stats-grid performance-economics">
+      <div class="metric-card"><div class="num" id="perf-roi">—</div><div class="label">ROI / yield</div><span class="metric-detail">Flat-stake singles; equivalent here</span></div>
+      <div class="metric-card"><div class="num" id="perf-net-units">—</div><div class="label">Net units</div><span class="metric-detail">Profit after one unit per selection</span></div>
+      <div class="metric-card"><div class="num" id="perf-average-odds">—</div><div class="label">Average odds</div><span class="metric-detail">Mean recorded decimal price</span></div>
+      <div class="metric-card"><div class="num" id="perf-streak">—</div><div class="label">Max selection losing streak</div><span class="metric-detail">Consecutive losses; voids ignored</span></div>
+    </div>
+    <p class="performance-coverage" id="perf-price-coverage">Checking settled-price coverage…</p>
+    <p class="performance-method"><strong>Singles accounting:</strong> each selection is treated as one unit staked at its recorded decimal odds. A win profits <strong>odds − 1</strong>, a loss loses one unit, and a void returns stake. These figures diagnose individual selections and must not be described as accumulator profitability. Hit rate alone does not establish profitability.</p>
+
     <div class="breakdown-grid">
       <section class="breakdown-box" aria-labelledby="monthly-performance-title">
         <div class="breakdown-header">
-          <h3 class="chart-title" id="monthly-performance-title">Monthly performance</h3>
+          <h3 class="chart-title" id="monthly-performance-title">Monthly selection performance</h3>
           <p class="section-desc">Latest six months with settled selections</p>
         </div>
         <div class="breakdown-table-wrap">
@@ -1126,7 +1179,7 @@
       </section>
       <section class="breakdown-box" aria-labelledby="league-performance-title">
         <div class="breakdown-header">
-          <h3 class="chart-title" id="league-performance-title">League performance</h3>
+          <h3 class="chart-title" id="league-performance-title">League selection performance</h3>
           <p class="section-desc">Up to six leagues by sample size</p>
         </div>
         <div class="breakdown-table-wrap">
@@ -1137,7 +1190,7 @@
         </div>
       </section>
     </div>
-    <p class="performance-note">Breakdowns describe this historical sample only. Small league or monthly samples do not establish a durable model edge.</p>
+    <p class="performance-note">Both views describe this historical sample only. Small ticket, monthly, or league samples do not establish a durable model edge.</p>
   </section>
 
   <section class="page" id="page-pricing" aria-labelledby="pricing-title">
@@ -1251,8 +1304,8 @@
         </section>
         <section class="about-section">
           <h3>How performance is measured</h3>
-          <p>The public dashboard uses settled published selections and retains wins, losses, and voids. Economic metrics use one-unit flat-stake singles at the recorded odds: wins profit odds minus one, losses lose one unit, and voids return stake. ROI and yield are equivalent under this convention.</p>
-          <p>These figures describe historical model output, not a customer’s actual betting returns. Monthly and league splits can contain small samples and should not be treated as proof of a lasting advantage.</p>
+          <p><strong>Accumulator performance</strong> uses one unit per original multi-leg ticket. Any losing leg loses the ticket; when all active legs win, profit is effective combined odds minus one. Void legs reduce the effective combination, all-void tickets return stake, and pending or single-leg tickets are excluded from accumulator metrics.</p>
+          <p><strong>Selection diagnostics</strong> separately use one-unit flat-stake singles: wins profit odds minus one, losses lose one unit, and voids return stake. ROI and yield are equivalent under either one-unit convention. These figures describe historical model output, not customer returns; small samples do not prove a lasting advantage.</p>
         </section>
       </article>
       <aside class="support-card" aria-labelledby="payment-help-title">
@@ -1800,7 +1853,7 @@
   function uniquePublishedSelections(rows){
     const seen = new Set();
     return (rows || []).filter(row => {
-      const key = `${row.ticket_date || ''}:${row.fixture_id || ''}`;
+      const key = `${row.ticket_id || ''}:${row.ticket_date || ''}:${row.fixture_id || ''}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -1971,6 +2024,30 @@
     button.addEventListener('click', () => setResultFilter(button.dataset.resultFilter));
   });
 
+  function renderTicketResults(rows){
+    const target = document.getElementById('ticket-results');
+    const tickets = PublicInsights.buildAccumulatorTickets(rows)
+      .filter(ticket => ticket.legs >= 2)
+      .sort((a, b) => String(b.ticket_date).localeCompare(String(a.ticket_date)) || b.id - a.id)
+      .slice(0, 10);
+    if (!tickets.length) {
+      target.innerHTML = '<tr><td colspan="6">No original accumulator tickets are available yet.</td></tr>';
+      return;
+    }
+    target.innerHTML = tickets.map(ticket => {
+      const outcome = ['win', 'loss', 'void', 'pending'].includes(ticket.outcome) ? ticket.outcome : 'pending';
+      const dateLabel = formatDisplayDate(ticket.ticket_date, { day: 'numeric', month: 'short', year: 'numeric' });
+      return `<tr>
+        <td><time datetime="${escapeHTML(ticket.ticket_date)}">${dateLabel}</time></td>
+        <td>#${escapeHTML(ticket.ticketId)}</td>
+        <td>${ticket.legs}</td>
+        <td>${ticket.postedOdds == null ? '—' : ticket.postedOdds.toFixed(2)}</td>
+        <td><span class="tag ${outcome}">${outcome}</span></td>
+        <td>${outcome === 'pending' ? '—' : formatPerformanceUnits(ticket.netUnits)}</td>
+      </tr>`;
+    }).join('');
+  }
+
   async function renderResults(){
     const list = document.getElementById('results-list');
     const strip = document.getElementById('outcome-strip');
@@ -1981,17 +2058,17 @@
     list.innerHTML = `<div class="skeleton-results" role="status" aria-label="Loading settled picks">
       ${Array.from({ length: 5 }, () => `<div class="skeleton-row" aria-hidden="true"><div class="skeleton-line md"></div><div class="skeleton-line lg"></div><div class="skeleton-line lg"></div><div class="skeleton-line md"></div></div>`).join('')}
     </div>`;
+    document.getElementById('ticket-results').innerHTML = '<tr><td colspan="6">Loading original tickets…</td></tr>';
 
     let data, error;
     try {
       const response = await sb
         .from('ticket_selections_safe')
-        .select('id, fixture_id, ticket_date, home_team, away_team, league, market, outcome, home_score, away_score')
-        .in('outcome', ['win', 'loss', 'void'])
+        .select('ticket_id, id, fixture_id, ticket_date, home_team, away_team, league, market, odds, outcome, home_score, away_score')
         .lt('ticket_date', todayEAT)
         .order('ticket_date', { ascending: false })
         .order('id', { ascending: false })
-        .limit(100);
+        .limit(200);
       data = response.data;
       error = response.error;
     } catch (networkError) {
@@ -2003,6 +2080,7 @@
       console.error('[Supabase] Failed to load results:', error.message, error.details, error.hint);
       settledResultsCache = [];
       document.getElementById('results-count').textContent = 'Settled picks unavailable';
+      document.getElementById('ticket-results').innerHTML = '<tr><td colspan="6">Original tickets unavailable. Retry below.</td></tr>';
       strip.innerHTML = '<li class="outcome-empty">Recent outcomes unavailable.</li>';
       list.innerHTML = `<div class="state-panel error">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
@@ -2012,7 +2090,10 @@
       return;
     }
 
-    settledResultsCache = uniquePublishedSelections(data || []).slice(0, 30);
+    settledResultsCache = uniquePublishedSelections(data || [])
+      .filter(row => ['win', 'loss', 'void'].includes(row?.outcome))
+      .slice(0, 30);
+    renderTicketResults(data || []);
     renderOutcomeStrip();
     renderResultList();
   }
@@ -2070,8 +2151,24 @@
     document.getElementById('performance-leagues').innerHTML = renderRows(leagues, 'No league record yet.');
   }
 
+  function renderAccumulatorBreakdown(tickets){
+    const monthly = PublicInsights.groupAccumulatorPerformance(tickets, 6);
+    document.getElementById('performance-acca-monthly').innerHTML = monthly.length ? monthly.map(group => `
+      <tr>
+        <td>${escapeHTML(formatPerformanceMonth(group.key))}</td>
+        <td>${group.settledTickets}</td>
+        <td>${group.wins}–${group.losses}–${group.voids}</td>
+        <td>${group.averageCombinedOdds == null ? '—' : group.averageCombinedOdds.toFixed(2)}</td>
+        <td>${formatPerformanceUnits(group.netUnits)}</td>
+        <td>${formatPerformancePercent(group.roi, true)}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="6">No settled accumulator record yet.</td></tr>';
+  }
+
   async function renderPerformance(){
     const metricIds = [
+      'acca-total', 'acca-won', 'acca-lost', 'acca-rate',
+      'acca-roi', 'acca-net-units', 'acca-average-odds', 'acca-streak',
       'perf-total', 'perf-won', 'perf-lost', 'perf-rate',
       'perf-roi', 'perf-net-units', 'perf-average-odds', 'perf-streak'
     ];
@@ -2081,18 +2178,17 @@
     const bars = document.getElementById('bars');
     const todayEAT = getEATDateKey();
     bars.setAttribute('aria-busy', 'true');
-    bars.innerHTML = `<div class="skeleton-chart" role="status" aria-label="Loading performance trend">
+    bars.innerHTML = `<div class="skeleton-chart" role="status" aria-label="Loading accumulator trend">
       ${[48,72,42,88,60,94,55,78,46,84,66,92,58,74].map(height => `<span class="skeleton-bar" style="height:${height}%" aria-hidden="true"></span>`).join('')}
     </div>`;
 
-    // Settled public rows are the single source of truth for outcome and
-    // economic metrics. No private prediction logs or customer stakes are read.
+    // Pending rows are intentionally included: without them, a partially
+    // settled ticket could be mistaken for a complete accumulator.
     let data, error;
     try {
       const response = await sb
         .from('ticket_selections_safe')
-        .select('id, fixture_id, ticket_date, outcome, odds, league')
-        .in('outcome', ['win', 'loss', 'void'])
+        .select('ticket_id, id, fixture_id, ticket_date, outcome, odds, league')
         .lt('ticket_date', todayEAT)
         .order('ticket_date', { ascending: false })
         .order('id', { ascending: false });
@@ -2113,7 +2209,9 @@
       document.getElementById('hero-settled-count').textContent = 'Unavailable';
       document.getElementById('hero-win-rate').textContent = '—';
       document.getElementById('hero-outcomes').textContent = 'Public record unavailable';
+      document.getElementById('acca-price-coverage').textContent = 'Original-ticket coverage is temporarily unavailable.';
       document.getElementById('perf-price-coverage').textContent = 'Settled-price coverage is temporarily unavailable.';
+      document.getElementById('performance-acca-monthly').innerHTML = '<tr><td colspan="6">Accumulator record unavailable.</td></tr>';
       document.getElementById('performance-monthly').innerHTML = '<tr><td colspan="6">Monthly record unavailable.</td></tr>';
       document.getElementById('performance-leagues').innerHTML = '<tr><td colspan="6">League record unavailable.</td></tr>';
       bars.innerHTML = `<div class="state-panel error">
@@ -2124,14 +2222,36 @@
       return;
     }
 
-    const selections = uniquePublishedSelections(data);
+    const accumulatorTickets = PublicInsights.buildAccumulatorTickets(data || []);
+    const accumulator = PublicInsights.calculateAccumulatorPerformance(accumulatorTickets);
+    const selections = uniquePublishedSelections(data).filter(row => ['win', 'loss', 'void'].includes(row?.outcome));
     const outcomeCounts = PublicInsights.countOutcomes(selections);
     const economics = PublicInsights.calculatePerformance(selections);
     const won = outcomeCounts.win;
     const lost = outcomeCounts.loss;
     const total = outcomeCounts.total;
 
-    document.getElementById('hero-settled-count').textContent = `${selections.length}`;
+    document.getElementById('acca-total').textContent = accumulator.settledTickets;
+    document.getElementById('acca-won').textContent = accumulator.wins;
+    document.getElementById('acca-lost').textContent = accumulator.losses;
+    document.getElementById('acca-rate').textContent = formatPerformancePercent(accumulator.winRate);
+    document.getElementById('acca-roi').textContent = formatPerformancePercent(accumulator.roi, true);
+    document.getElementById('acca-net-units').textContent = formatPerformanceUnits(accumulator.netUnits);
+    document.getElementById('acca-average-odds').textContent = accumulator.averageCombinedOdds == null ? '—' : accumulator.averageCombinedOdds.toFixed(2);
+    document.getElementById('acca-streak').textContent = accumulator.settledTickets ? `${accumulator.maxLosingStreak}` : '—';
+    setPerformanceTone('acca-roi', accumulator.roi);
+    setPerformanceTone('acca-net-units', accumulator.netUnits);
+
+    const accaCoverage = document.getElementById('acca-price-coverage');
+    if (!accumulator.settledTickets) {
+      accaCoverage.textContent = `No complete settled accumulators yet. ${accumulator.pendingTickets} pending and ${accumulator.singleTickets} single-leg tickets are excluded.`;
+    } else if (accumulator.pricedCount === accumulator.settledTickets) {
+      accaCoverage.textContent = `${accumulator.settledTickets} settled accumulators · ${accumulator.wins}W–${accumulator.losses}L–${accumulator.voids}V · ${accumulator.pricedCount}/${accumulator.settledTickets} fully priced · ${accumulator.pendingTickets} pending and ${accumulator.singleTickets} single-leg tickets excluded.`;
+    } else {
+      accaCoverage.textContent = `${accumulator.pricedCount} of ${accumulator.settledTickets} settled accumulators are fully priced. ROI and net units remain unavailable until every settled ticket has complete original prices. ${accumulator.pendingTickets} pending and ${accumulator.singleTickets} single-leg tickets are excluded.`;
+    }
+
+    document.getElementById('hero-settled-count').textContent = `${economics.selections}`;
     document.getElementById('hero-outcomes').textContent = `${won}W · ${lost}L · ${outcomeCounts.void}V`;
     document.getElementById('hero-win-rate').textContent = formatPerformancePercent(economics.winRate);
     document.getElementById('perf-total').textContent = total;
@@ -2147,35 +2267,32 @@
 
     const coverage = document.getElementById('perf-price-coverage');
     if (!selections.length) coverage.textContent = 'No settled selections are available yet.';
-    else if (economics.pricedCount === selections.length) coverage.textContent = `${economics.pricedCount} of ${selections.length} settled selections have valid recorded odds. Economic metrics use this complete settled sample.`;
-    else coverage.textContent = `${economics.pricedCount} of ${selections.length} settled selections have valid recorded odds. ROI and net units are unavailable until every row is priced; missing prices are not treated as wins, losses, or zero odds.`;
+    else if (economics.pricedCount === selections.length) coverage.textContent = `${economics.pricedCount} of ${selections.length} settled selections have valid recorded odds. Singles metrics use this complete settled sample.`;
+    else coverage.textContent = `${economics.pricedCount} of ${selections.length} settled selections have valid recorded odds. Singles ROI and net units are unavailable until every row is priced; missing prices are not treated as zero odds.`;
 
+    renderAccumulatorBreakdown(accumulatorTickets);
     renderPerformanceBreakdowns(selections);
 
-    if (selections.length === 0) {
+    const settledTickets = accumulator.tickets
+      .filter(ticket => ['win', 'loss', 'void'].includes(ticket.outcome))
+      .sort((a, b) => {
+        const dateOrder = String(a.ticket_date).localeCompare(String(b.ticket_date));
+        return dateOrder || a.id - b.id;
+      })
+      .slice(-14);
+
+    if (settledTickets.length === 0) {
       bars.innerHTML = `<div class="state-panel">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>
-        <div><span class="state-title">No trend data yet</span>This chart will fill as published tickets are settled.</div>
+        <div><span class="state-title">No settled accumulator trend yet</span>This chart will fill as original multi-leg tickets finish settling.</div>
       </div>`;
       return;
     }
 
-    const byDate = new Map();
-    selections.forEach(selection => {
-      const outcomes = byDate.get(selection.ticket_date) || [];
-      outcomes.push(selection.outcome);
-      byDate.set(selection.ticket_date, outcomes);
-    });
-
-    const tickets = Array.from(byDate, ([ticket_date, outcomes]) => ({
-      ticket_date,
-      outcome: outcomes.includes('loss') ? 'loss' : (outcomes.includes('win') ? 'win' : 'void')
-    })).sort((a, b) => a.ticket_date.localeCompare(b.ticket_date)).slice(-14);
-
-    bars.innerHTML = tickets.map(ticket => {
+    bars.innerHTML = settledTickets.map(ticket => {
       const dayLabel = formatDisplayDate(ticket.ticket_date, { weekday: 'narrow' });
       const isWin = ticket.outcome === 'win';
-      const accessibleLabel = `${formatDisplayDate(ticket.ticket_date)}: ${ticket.outcome}`;
+      const accessibleLabel = `${formatDisplayDate(ticket.ticket_date)}, original ticket ${ticket.ticketId}: ${ticket.outcome}`;
       return `
         <div class="bar-col" role="img" aria-label="${escapeHTML(accessibleLabel)}">
           <div class="bar-fill ${isWin ? 'win' : ''}" style="height:${isWin ? '100%' : '40%'}" title="${escapeHTML(accessibleLabel)}"></div>

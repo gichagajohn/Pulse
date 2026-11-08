@@ -102,7 +102,7 @@ test('schedule, provider coverage and performance copy do not overclaim', () => 
   assert.match(html, /Hit rate alone does not establish profitability/);
   assert.doesNotMatch(html, /64% Win Rate|65\.3% Win Rate|guaranteed winnings/i);
   assert.match(html, /id="hero-settled-count">Loading…/);
-  assert.match(html, /hero-settled-count'\)\.textContent = `\$\{selections\.length\}`/);
+  assert.match(html, /hero-settled-count'\)\.textContent = `\$\{economics\.selections\}`/);
   assert.match(html, /hero-outcomes'\)\.textContent = `\$\{won\}W · \$\{lost\}L · \$\{outcomeCounts\.void\}V`/);
 });
 

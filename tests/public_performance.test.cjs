@@ -90,14 +90,18 @@ test('performance tables render real grouped rows with escaped labels', () => {
 });
 
 test('public integration exposes economics without weakening the paywall or inventing premium analytics', () => {
-  ['perf-roi', 'perf-net-units', 'perf-average-odds', 'perf-streak', 'performance-monthly', 'performance-leagues', 'hero-win-rate'].forEach(id => {
+  ['acca-total', 'acca-rate', 'acca-roi', 'acca-net-units', 'acca-average-odds', 'acca-streak', 'performance-acca-monthly', 'perf-roi', 'perf-net-units', 'perf-average-odds', 'perf-streak', 'performance-monthly', 'performance-leagues', 'hero-win-rate'].forEach(id => {
     assert.match(html, new RegExp(`id="${id}"`));
   });
-  assert.match(html, /select\('id, fixture_id, ticket_date, outcome, odds, league'\)/);
+  assert.match(html, /select\('ticket_id, id, fixture_id, ticket_date, outcome, odds, league'\)/);
   assert.match(html, /catch \(networkError\)/);
+  assert.match(html, /PublicInsights\.buildAccumulatorTickets\(data \|\| \[\]\)/);
+  assert.match(html, /PublicInsights\.calculateAccumulatorPerformance\(accumulatorTickets\)/);
   assert.match(html, /PublicInsights\.calculatePerformance\(selections\)/);
   assert.match(html, /PublicInsights\.priceImpliedProbability\(p\.odds\)/);
   assert.match(html, /Model rating \(ticket\)/);
+  assert.match(html, /Selection diagnostics — flat-stake singles/);
+  assert.match(html, /<span class="hero-trust-label">Selection win rate<\/span>/);
   assert.match(html, /Price-implied probability/);
   assert.doesNotMatch(html, /expectedValue\s*=|oddsMovement\s*=/);
   assert.match(html, /sb\.rpc\('get_daily_picks'\)/);
