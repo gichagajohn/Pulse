@@ -8,6 +8,7 @@
 - `/admin.css` — dashboard styling.
 - `20261106_admin_dashboard.sql` — admin allowlist, admin-only RPC API, payment read model, and `pending_payments` RLS hardening.
 - `20261108_admin_strategy_report.sql` — allowlisted-admin production/shadow aggregate reporting; no raw shadow-log API.
+- `20261108_access_pricing_100_500.sql` — current Daily KSh 100 and Weekly KSh 500 pending-payment policy; historical transaction amounts are not rewritten.
 
 ## Security model
 
@@ -68,7 +69,7 @@ Never add an open sign-up/first-user-claims-admin function. Admin grants must re
 - `pending_payments` rows appear as provider attempts when no subscription has the same checkout ID. They are not counted as received revenue.
 - A successful provider attempt without a matching subscription is surfaced as **Needs reconciliation** instead of being silently added to or omitted from totals.
 - Today uses the `Africa/Nairobi` calendar date. The 30-day total is a rolling interval.
-- Historical amounts come from each transaction, not from current plan prices.
+- Historical amounts come from each transaction, not from current plan prices. New access payments are Daily KSh 100 and Weekly KSh 500 under `20261108_access_pricing_100_500.sql`; older KSh 1,000/KSh 5,000 and earlier KSh 10 records remain unchanged for audit and revenue accuracy.
 
 ## Dashboard features
 

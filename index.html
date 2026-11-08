@@ -4,7 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Football Pulse — Data-Driven Match Intelligence</title>
-<meta name="description" content="Data-driven football match analysis across Europe's top leagues. Daily probabilistic picks, published transparently with a public track record.">
+<meta name="description" content="Probability-led football analysis across major leagues and selected competitions, with disciplined daily selections and a transparent public record.">
+<link rel="canonical" href="https://pulse-iota-teal.vercel.app/">
+<meta name="theme-color" content="#087a55">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Football Pulse">
+<meta property="og:locale" content="en_KE">
+<meta property="og:title" content="Football Pulse — Data-Driven Match Intelligence">
+<meta property="og:description" content="Measured football analysis, disciplined daily selections, and a transparent public record. Scheduled daily at 07:00 EAT. 18+ only.">
+<meta property="og:url" content="https://pulse-iota-teal.vercel.app/">
+<meta property="og:image" content="https://pulse-iota-teal.vercel.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Football Pulse — measured football analysis, built on data">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Football Pulse — Data-Driven Match Intelligence">
+<meta name="twitter:description" content="Measured football analysis and a transparent public record. Scheduled daily at 07:00 EAT. 18+ only.">
+<meta name="twitter:image" content="https://pulse-iota-teal.vercel.app/og-image.png">
+<meta name="twitter:image:alt" content="Football Pulse — measured football analysis, built on data">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Football Pulse","url":"https://pulse-iota-teal.vercel.app/","description":"Probability-led football analysis with a transparent public record."}</script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111827'/%3E%3Ctext x='16' y='22' font-family='Arial,sans-serif' font-weight='800' font-size='14' fill='white' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -381,6 +399,12 @@
   .icon-check { width: 16px; height: 16px; flex: 0 0 16px; margin-top: 2px; color: var(--brand); stroke-width: 2.2; }
   .price-card .btn { width: 100%; }
   .current-plan { cursor: default; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  .payment-assurance, .performance-note { margin: 18px auto 0; color: var(--text-secondary); font-size: 12px; line-height: 1.65; text-align: center; }
+  .payment-responsibility { margin-top: 12px; padding: 10px 12px; border: 1px solid #ead9b5; border-radius: var(--radius-sm); background: var(--amber-light); color: #754300; font-size: 11px; line-height: 1.6; }
+  .payment-modal-assurance { margin: -10px 0 18px; color: var(--text-secondary); font-size: 12px; line-height: 1.6; }
+  .noscript-banner { max-width: var(--container); margin: 18px auto; padding: 12px 16px; border: 1px solid #ead9b5; border-radius: var(--radius-sm); background: var(--amber-light); color: #754300; font-size: 13px; }
+  .state-actions { margin-top: 14px; }
 
   /* Forms and modals */
   .modal-overlay {
@@ -741,6 +765,7 @@
       <h3 class="modal-title" id="paymentModalTitle">Pay with M-Pesa</h3>
       <p class="modal-description" id="paymentModalSub">Enter your Safaricom number to receive an STK push.</p>
     </div>
+    <p class="payment-modal-assurance">Secure M-Pesa STK Push · No card required · Access activates after payment confirmation.</p>
     <div id="paymentError" class="auth-error" role="alert" style="display:none;"></div>
     <form id="paymentForm" onsubmit="event.preventDefault(); submitPayment();" novalidate>
       <div class="form-field">
@@ -752,9 +777,12 @@
         <button class="btn btn-brand" id="paymentSubmitBtn" type="submit">Send request</button>
       </div>
     </form>
+    <p class="payment-responsibility"><strong>18+ only.</strong> Probabilistic analysis, not guaranteed outcomes. Never stake money you cannot afford to lose.</p>
     <p id="paymentStatus" class="payment-status" aria-live="polite"></p>
   </div>
 </div>
+
+<noscript><div class="noscript-banner">Live fixtures, results, account access, and payments require JavaScript. Pricing, methodology, and legal information remain available on this page.</div></noscript>
 
 <main>
   <section class="page active" id="page-home" aria-labelledby="home-title">
@@ -765,7 +793,7 @@
           Matchday intelligence active
         </div>
         <h1 id="home-title">Measured football analysis, built on data.</h1>
-        <p>Probability-led match intelligence across Europe’s top five leagues, with disciplined daily selections and a transparent public record.</p>
+        <p>Probability-led match intelligence across major leagues and selected competitions, with disciplined daily selections and a transparent public record.</p>
         <div class="hero-actions">
           <button class="btn btn-primary" onclick="goTo('picks')">
             View today’s picks
@@ -776,15 +804,15 @@
         <div class="hero-notes" aria-label="Service details">
           <span class="hero-note">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Top five European leagues
+            Major leagues &amp; selected competitions
           </span>
           <span class="hero-note">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-            Published daily at 07:00 EAT
+            Scheduled daily at 07:00 EAT
           </span>
           <span class="hero-note">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>
-            Outcomes tracked publicly
+            <span id="hero-settled-count">Wins and losses published publicly</span>
           </span>
         </div>
       </div>
@@ -794,7 +822,7 @@
       <div>
         <div class="section-kicker">Latest model output</div>
         <h2 class="section-title">Today’s ticket summary</h2>
-        <p class="section-desc" id="ticket-date-label" aria-live="polite">Updated daily at 07:00 EAT</p>
+        <p class="section-desc" id="ticket-date-label" aria-live="polite">Scheduled daily at 07:00 EAT</p>
       </div>
       <button class="btn btn-secondary" onclick="goTo('picks')">
         Full analysis
@@ -826,7 +854,7 @@
       <article class="card">
         <div class="card-body">
           <h3 class="method-title">Data collection</h3>
-          <p class="method-copy">Fixtures, odds, injuries, and weather are pulled fresh each matchday from live football data providers, never estimated after the fact.</p>
+          <p class="method-copy">Fixtures and bookmaker prices are refreshed each matchday. Injuries and weather are included only when available from our providers; post-match results are never substituted for pre-match predictions.</p>
         </div>
       </article>
       <article class="card">
@@ -850,7 +878,7 @@
       <div>
         <div class="section-kicker">Matchday analysis</div>
         <h2 class="section-title" id="picks-title">Today’s analytical selections</h2>
-        <p class="section-desc">Daily fixtures and model output across supported European leagues.</p>
+        <p class="section-desc">Daily fixtures and model output across supported leagues and competitions.</p>
       </div>
     </div>
     <div class="grid" id="picks-grid" aria-live="polite"></div>
@@ -887,6 +915,7 @@
       <div class="metric-card"><div class="num" id="perf-lost">—</div><div class="label">Unsuccessful</div></div>
       <div class="metric-card"><div class="num" id="perf-rate">—</div><div class="label">Win rate</div></div>
     </div>
+    <p class="performance-note">Hit rate alone does not establish profitability. Average odds, stake size, voids, and return on stake also matter; this public record includes wins and losses without guaranteeing future results.</p>
 
     <div class="chart-box">
       <div class="chart-header">
@@ -920,15 +949,15 @@
         <ul class="features-list">
           <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Basic match listings and schedules</li>
           <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Public performance metrics</li>
-          <li class="disabled">Detailed model predictions</li>
-          <li class="disabled">Confidence ratings and breakdowns</li>
+          <li class="disabled"><span class="sr-only">Not included: </span>Detailed model predictions</li>
+          <li class="disabled"><span class="sr-only">Not included: </span>Confidence ratings and breakdowns</li>
         </ul>
         <button class="btn btn-secondary current-plan" disabled>Current plan</button>
       </article>
 
       <article class="price-card">
         <h3 class="price-title">Daily pass</h3>
-        <div class="price-amount">KSh 1,000</div>
+        <div class="price-amount">KSh 100</div>
         <div class="price-sub">24 hours of full access</div>
         <ul class="features-list">
           <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Complete matchday predictions</li>
@@ -941,16 +970,17 @@
       <article class="price-card featured">
         <span class="badge-featured">Best value</span>
         <h3 class="price-title">Weekly pass</h3>
-        <div class="price-amount">KSh 5,000</div>
+        <div class="price-amount">KSh 500</div>
         <div class="price-sub">7 days of continuous access</div>
         <ul class="features-list">
           <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Full access for 7 complete days</li>
-          <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Priority access to early published picks</li>
-          <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Historical match analysis archive</li>
+          <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Every published matchday during your pass</li>
+          <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> One payment for continuous access</li>
         </ul>
         <button class="btn btn-brand" onclick="payWithMpesa('weekly')">Pay with M-Pesa</button>
       </article>
     </div>
+    <p class="payment-assurance">Secure M-Pesa STK Push · No card required · Access activates after payment confirmation.<br><strong>18+ only.</strong> Analysis is informational and never guarantees winnings.</p>
   </section>
 
   <section class="page" id="page-terms" aria-labelledby="terms-title">
@@ -965,7 +995,7 @@
         <div class="legal-content">
           <p><strong>1. What this service is.</strong> Football Pulse provides statistical, probability-based analysis of football matches for informational purposes. Picks reflect a model's output, not a guarantee of any outcome. Sports outcomes are inherently uncertain; no analysis, however rigorous, can predict results with certainty.</p>
           <p><strong>2. Eligibility.</strong> This service is intended for users aged 18 and over. By purchasing access, you confirm you meet this requirement and that engaging with sports-related predictions is legal in your jurisdiction.</p>
-          <p><strong>3. Payments.</strong> Payments are processed via M-Pesa through a licensed third-party payment processor. Daily and Weekly passes grant time-limited access to that period's published analysis, as described on the Pricing page. Because access is granted immediately upon payment, purchases are non-refundable once a pass has been activated, except where required by law.</p>
+          <p><strong>3. Payments.</strong> Payments are processed via M-Pesa through a licensed third-party payment processor. Daily and Weekly passes grant time-limited access to that period's published analysis, as described on the Pricing page. Access is granted after payment confirmation. Purchases are non-refundable once a pass has been activated, except where required by law.</p>
           <p><strong>4. No financial or betting advice.</strong> Nothing on this site constitutes financial, betting, or professional advice. Any decisions made based on this content are made entirely at your own discretion and risk.</p>
           <p><strong>5. Responsible use.</strong> Gambling involves financial risk. Please engage responsibly and within your means. If you feel your relationship with gambling has become harmful, please seek independent support.</p>
           <p class="legal-note">This is a general summary provided for transparency and is not a substitute for formal legal terms drafted for your specific business and jurisdiction.</p>
@@ -1005,12 +1035,11 @@
     <nav class="footer-links" aria-label="Legal and support">
       <a href="#" onclick="event.preventDefault(); goTo('terms');">Terms</a>
       <a href="#" onclick="event.preventDefault(); goTo('privacy');">Privacy</a>
-      <a href="/cdn-cgi/l/email-protection#e78d97ded5d2d6ded1a7808a868e8bc984888ad89492858d828493daa188889385868b8bc2d5d7b7928b9482c2d5d7b4929797889593">Support</a>
+      <a href="mailto:jp925196@gmail.com?subject=Football%20Pulse%20Support">Support</a>
     </nav>
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script src="/fixture-time.js"></script>
 <script>
   /* ===================================================================
@@ -1381,7 +1410,7 @@
       // which contains the full readable predictions.
       const result = await sb
         .from('prediction_tickets_safe')
-        .select('ticket_date, status, combined_odds, selection_count, final_confidence, risk_level')
+        .select('ticket_date, status, combined_odds, selection_count, final_confidence, risk_level, created_at')
         .order('ticket_date', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -1406,8 +1435,9 @@
       return;
     }
 
+    const publishedLabel = window.FixtureTime ? FixtureTime.formatKickoffEAT(data.created_at) : '';
     document.getElementById('ticket-date-label').textContent =
-      `Ticket for ${formatDisplayDate(data.ticket_date)}`;
+      `Ticket for ${formatDisplayDate(data.ticket_date)}${publishedLabel ? ` · Published ${publishedLabel}` : ''}`;
 
     if (data.status === 'no_bet') {
       document.getElementById('stat-selections').textContent = '0';
@@ -1502,7 +1532,8 @@
       console.error('[Supabase] Failed to load picks:', error.message);
       grid.innerHTML = `<div class="state-panel error">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
-        <div><span class="state-title">Today’s picks are unavailable</span>We couldn’t retrieve the latest analysis. Please check your connection and try again shortly.</div>
+        <div><span class="state-title">Today’s picks are unavailable</span>We couldn’t retrieve the latest analysis. Check your connection and retry; no ticket is being fabricated from stale data.</div>
+        <div class="state-actions"><button class="btn btn-secondary btn-sm" type="button" onclick="renderPicks()">Retry loading picks</button></div>
       </div>`;
       return;
     }
@@ -1516,7 +1547,7 @@
     if (currentPicks.length === 0) {
       grid.innerHTML = `<div class="state-panel">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3v3m12-3v3M4 9h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
-        <div><span class="state-title">No picks published for today</span>A new ticket will appear here after the next qualifying matchday run.</div>
+        <div><span class="state-title">No published selections for today</span>The analysis may still be pending, or no selection met our quality thresholds. Publication is scheduled for 07:00 EAT; “No Bet” is preferable to a weak selection.</div>
       </div>`;
       return;
     }
@@ -1659,6 +1690,7 @@
       bars.innerHTML = `<div class="state-panel error">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
         <div><span class="state-title">Performance unavailable</span>Settled performance could not be retrieved right now.</div>
+        <div class="state-actions"><button class="btn btn-secondary btn-sm" type="button" onclick="renderPerformance()">Retry loading performance</button></div>
       </div>`;
       return;
     }
@@ -1667,6 +1699,9 @@
     const won = selections.filter(selection => selection.outcome === 'win').length;
     const lost = selections.filter(selection => selection.outcome === 'loss').length;
     const total = won + lost;
+    if (total > 0) {
+      document.getElementById('hero-settled-count').textContent = `${total} settled selections · Public record`;
+    }
     document.getElementById('perf-total').textContent = total;
     document.getElementById('perf-won').textContent = won;
     document.getElementById('perf-lost').textContent = lost;
@@ -1706,11 +1741,10 @@
   }
   /* =================== END STEP 4 ADDITION =================== */
 
-  // Pages that require a signed-in account to even view — not just to
-  // unlock the paid content on them. Checked centrally here so every way
-  // of navigating (desktop nav, the mobile dropdown, hero buttons, etc.)
-  // is covered automatically, with no risk of one of them being missed.
-  const AUTH_REQUIRED_PAGES = ['picks', 'performance'];
+  // Fixtures, settled results, and aggregate performance are genuinely free
+  // to view. Exact markets, odds, and rationales remain locked server-side by
+  // get_daily_picks; sign-in is required only for account/payment actions.
+  const AUTH_REQUIRED_PAGES = [];
   const PAGE_TITLES = {
     home: 'Football Pulse — Data-Driven Match Intelligence',
     picks: 'Daily Picks — Football Pulse',
@@ -1810,7 +1844,7 @@
   let pendingPlan = null;
   let paymentPollTimer = null;
 
-  const PLAN_LABELS = { daily: 'Daily Pass, KSh 1000', weekly: 'Weekly Pass, KSh 5000' };
+  const PLAN_LABELS = { daily: 'Daily Pass, KSh 100', weekly: 'Weekly Pass, KSh 500' };
 
   function payWithMpesa(plan){
     if (!currentSession) {
