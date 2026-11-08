@@ -1886,6 +1886,7 @@
     const submitBtn = document.getElementById('paymentSubmitBtn');
     errEl.style.display = 'none';
     statusEl.textContent = '';
+    statusEl.style.color = '';
 
     if (!phone) {
       errEl.textContent = 'Enter your phone number.';
@@ -1899,7 +1900,7 @@
 
     // sb.functions.invoke automatically attaches the signed-in user's
     // Authorization header — the stk-push Edge Function uses that to
-    // identify who's paying and insert the subscriptions row correctly.
+    // identify who is paying and create the matching pending-payment row.
     const { data, error } = await sb.functions.invoke('stk-push', {
       body: { phone, plan: pendingPlan }
     });
@@ -1907,6 +1908,8 @@
     if (error) {
       errEl.textContent = error.message || 'Something went wrong. Please try again.';
       errEl.style.display = 'block';
+      statusEl.textContent = 'Request failed. No STK push was confirmed; check your phone before retrying.';
+      statusEl.style.color = 'var(--red)';
       submitBtn.disabled = false;
       submitBtn.textContent = 'Send request';
       return;
@@ -1914,6 +1917,8 @@
     if (!data || !data.checkoutRequestId) {
       errEl.textContent = (data && data.error) || 'Payment could not be started.';
       errEl.style.display = 'block';
+      statusEl.textContent = 'Request failed. No STK push was confirmed; check your phone before retrying.';
+      statusEl.style.color = 'var(--red)';
       submitBtn.disabled = false;
       submitBtn.textContent = 'Send request';
       return;
@@ -1930,10 +1935,9 @@
 
     paymentPollTimer = setInterval(async () => {
       attempts++;
-      // Polls our own check-status Edge Function, which in turn asks
-      // IntaSend directly whether the payment completed — rather than
-      // reading the subscriptions table directly, since nothing updates
-      // that row until check-status itself confirms and writes it.
+      // Polls our own check-status Edge Function, which asks PayHero whether
+      // payment completed rather than reading the subscriptions table directly;
+      // access is written only after provider confirmation.
       const { data, error } = await sb.functions.invoke('check-status', {
         body: { checkoutRequestId }
       });

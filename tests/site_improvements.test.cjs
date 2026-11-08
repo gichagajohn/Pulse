@@ -22,6 +22,20 @@ test('Daily and Weekly prices are KSh 100/500 in display, payment labels, edge f
   assert.doesNotMatch(pricingSql, /amount = 1000|amount = 5000/i);
 });
 
+test('STK initiation has no fragile remote import and preserves authenticated server-side pricing', () => {
+  assert.doesNotMatch(edgeSource, /^\s*import\s/m);
+  assert.match(edgeSource, /\/auth\/v1\/user/);
+  assert.match(edgeSource, /\/rest\/v1\/pending_payments/);
+  assert.match(edgeSource, /if \(!authHeader\) return jsonResponse\(\{ error: "Not signed in\." \}, 401\)/);
+  assert.match(edgeSource, /if \(!pendingResponse\.ok\)/);
+  assert.match(edgeSource, /Contact support before retrying/);
+});
+
+test('failed STK requests clear the requesting state without claiming a push was confirmed', () => {
+  assert.equal((html.match(/Request failed\. No STK push was confirmed; check your phone before retrying\./g) || []).length, 2);
+  assert.match(html, /statusEl\.textContent = '';\s*statusEl\.style\.color = '';/);
+});
+
 test('pricing migration changes only the future insert policy and preserves historical amounts', () => {
   assert.match(pricingSql, /drop policy if exists "Users can create own pending payments"/i);
   assert.match(pricingSql, /for insert\s+to authenticated\s+with check/i);
