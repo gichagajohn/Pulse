@@ -153,12 +153,13 @@ if (typeof document !== 'undefined') {
       activeTab: 'overview',
       overviewRequest: 0,
       authRequest: 0,
+      strategy: { days: 90, request: 0 },
       users: { search: '', offset: 0, limit: 25, total: 0, rows: [], request: 0, rpc: 'admin_list_users' },
       purchases: { search: '', status: 'all', offset: 0, limit: 25, total: 0, rows: [], request: 0, rpc: 'admin_list_purchases' },
       tickets: { search: '', status: 'all', offset: 0, limit: 10, total: 0, rows: [], request: 0, rpc: 'admin_list_tickets' }
     };
     const debounceTimers = {};
-    const tabTitles = { overview: 'Overview', tickets: 'Full tickets', users: 'Accounts', purchases: 'Purchases' };
+    const tabTitles = { overview: 'Overview', strategy: 'Model lab', tickets: 'Full tickets', users: 'Accounts', purchases: 'Purchases' };
     let toastTimer = null;
 
     const byId = id => document.getElementById(id);
@@ -323,6 +324,7 @@ if (typeof document !== 'undefined') {
     async function loadTab(tab) {
       if (!state.isAdmin) return;
       if (tab === 'overview') await loadOverview();
+      else if (tab === 'strategy') await loadStrategy();
       else await loadCollection(tab);
     }
 
@@ -337,6 +339,30 @@ if (typeof document !== 'undefined') {
       }
       renderOverview(data || {});
       setLastUpdated(data?.generated_at);
+    }
+
+    async function loadStrategy() {
+      if (!state.isAdmin) return;
+      const request = ++state.strategy.request;
+      const view = window.AdminStrategyView;
+      clearGlobalAlert();
+      if (!view) {
+        showGlobalAlert('Model lab could not be loaded because its rendering module is unavailable.');
+        return;
+      }
+      view.renderLoading(byId('strategyReport'));
+      const { data, error } = await sb.rpc('admin_strategy_report', { p_days: state.strategy.days });
+      if (request !== state.strategy.request) return;
+      if (error) {
+        view.renderError(byId('strategyReport'), `Strategy diagnostics could not be loaded: ${friendlyError(error)}`);
+        return;
+      }
+      try {
+        view.render(byId('strategyReport'), data || {});
+        setLastUpdated(data?.generated_at);
+      } catch (renderError) {
+        view.renderError(byId('strategyReport'), `Strategy diagnostics could not be rendered: ${friendlyError(renderError)}`);
+      }
     }
 
     async function loadCollection(kind) {
@@ -768,6 +794,11 @@ if (typeof document !== 'undefined') {
           state[kind].offset = 0;
           void loadCollection(kind);
         });
+      });
+      byId('strategyWindow').addEventListener('change', event => {
+        const days = Number(event.target.value);
+        state.strategy.days = Number.isFinite(days) ? Math.min(Math.max(Math.round(days), 1), 3650) : 90;
+        void loadStrategy();
       });
     }
 

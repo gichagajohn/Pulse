@@ -9,6 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23111827'/%3E%3Ctext x='16' y='22' font-family='Arial,sans-serif' font-weight='800' font-size='14' fill='white' text-anchor='middle'%3EFP%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="/admin.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/admin-strategy.js" defer></script>
 <script src="/admin.js" defer></script>
 </head>
 <body>
@@ -59,6 +60,7 @@
     </a>
     <nav class="admin-nav" aria-label="Admin sections">
       <button class="nav-item active" type="button" data-tab="overview"><span aria-hidden="true">▦</span> Overview</button>
+      <button class="nav-item" type="button" data-tab="strategy"><span aria-hidden="true">∥</span> Model lab</button>
       <button class="nav-item" type="button" data-tab="tickets"><span aria-hidden="true">⌁</span> Full tickets</button>
       <button class="nav-item" type="button" data-tab="users"><span aria-hidden="true">◎</span> Accounts</button>
       <button class="nav-item" type="button" data-tab="purchases"><span aria-hidden="true">⇄</span> Purchases</button>
@@ -116,6 +118,19 @@
             <div id="dataHealth" class="health-list"></div>
           </article>
         </div>
+      </section>
+
+      <section id="panel-strategy" class="tab-panel" aria-label="Private strategy comparison" hidden>
+        <div class="section-heading">
+          <div><p class="eyebrow">Stage 2 · Private experiment</p><h2>Production vs shadow</h2><p>Aggregate diagnostics for the production optimizer and robust_conservative_v1. No shadow selection is published or activated.</p></div>
+          <span class="lab-badge">Shadow only · Read only</span>
+        </div>
+        <div class="notice info">Production means optimizer output, not necessarily the official ticket published after Auditor and Decision. Small samples and missing closing prices are shown as limitations, not hidden.</div>
+        <div class="filters strategy-filters">
+          <label><span>Ticket-date window</span><select id="strategyWindow"><option value="30">Last 30 days</option><option value="90" selected>Last 90 days</option><option value="365">Last 365 days</option><option value="3650">Up to 10 years</option></select></label>
+          <span class="filter-note">One flat unit per bet · Aggregates only · No team-level shadow data</span>
+        </div>
+        <div id="strategyReport" class="strategy-report" aria-live="polite"><div class="empty-state">Open this tab to load private strategy diagnostics.</div></div>
       </section>
 
       <section id="panel-tickets" class="tab-panel" aria-label="Full tickets" hidden>

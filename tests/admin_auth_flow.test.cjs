@@ -49,14 +49,24 @@ function emptyOverview() {
   };
 }
 
-async function createHarness({ session, isAdmin }) {
+async function createHarness({ session, isAdmin, strategyReport = {} }) {
+  const tabNames = ['overview', 'strategy', 'tickets', 'users', 'purchases'];
+  const navButtons = tabNames.map(tab => {
+    const button = new FakeElement(`tab-${tab}`);
+    button.dataset.tab = tab;
+    return button;
+  });
   const document = {
     elements: {},
     listeners: {},
     getElementById(id) { return this.elements[id] || null; },
     createElement() { return new FakeElement(); },
     createTextNode(text) { return String(text); },
-    querySelectorAll() { return []; },
+    querySelectorAll(selector) {
+      if (selector === '[data-tab]') return navButtons;
+      if (selector === '.tab-panel') return tabNames.map(tab => this.elements[`panel-${tab}`]);
+      return [];
+    },
     addEventListener(name, callback) { this.listeners[name] = callback; },
     body: new FakeElement('body')
   };
@@ -73,6 +83,7 @@ async function createHarness({ session, isAdmin }) {
       calls.push({ name, params });
       if (name === 'is_admin') return { data: isAdmin, error: null };
       if (name === 'admin_dashboard_overview') return { data: emptyOverview(), error: null };
+      if (name === 'admin_strategy_report') return { data: strategyReport, error: null };
       throw new Error(`Unexpected RPC: ${name}`);
     }
   };
@@ -80,7 +91,14 @@ async function createHarness({ session, isAdmin }) {
     document,
     window: {
       supabase: { createClient() { return client; } },
-      location: { origin: 'https://pulse-iota-teal.vercel.app' }
+      location: { origin: 'https://pulse-iota-teal.vercel.app' },
+      AdminStrategyView: {
+        renderLoading(element) { element.textContent = 'Loading strategy'; },
+        render(element, data) {
+          element.textContent = `Rendered strategy: ${data.marker || 'empty'}`;
+        },
+        renderError(element, message) { element.textContent = message; }
+      }
     },
     console,
     setTimeout,
@@ -102,7 +120,17 @@ async function createHarness({ session, isAdmin }) {
   document.listeners.DOMContentLoaded();
   await new Promise(resolve => setImmediate(resolve));
   await new Promise(resolve => setImmediate(resolve));
-  return { document, calls, el: id => document.getElementById(id) };
+  return {
+    document,
+    calls,
+    el: id => document.getElementById(id),
+    async clickTab(tab) {
+      const button = navButtons.find(candidate => candidate.dataset.tab === tab);
+      button.listeners.click();
+      await new Promise(resolve => setImmediate(resolve));
+      await new Promise(resolve => setImmediate(resolve));
+    }
+  };
 }
 
 test('signed-out startup shows only the admin sign-in view', async () => {
@@ -131,4 +159,23 @@ test('an allowlisted admin reaches the overview through authorised RPCs', async 
   assert.deepEqual(h.calls.map(call => call.name), ['is_admin', 'admin_dashboard_overview']);
   assert.equal(h.el('adminIdentity').textContent, 'admin@example.com');
   assert.equal(h.el('totalRevenue').textContent, 'KSh 0');
+});
+
+test('an admin can open Model lab and reload its aggregate RPC with a new window', async () => {
+  const session = { access_token: 'admin-token', user: { email: 'admin@example.com' } };
+  const h = await createHarness({ session, isAdmin: true, strategyReport: { marker: 'verified' } });
+  await h.clickTab('strategy');
+  assert.equal(h.el('pageTitle').textContent, 'Model lab');
+  assert.equal(h.el('panel-strategy').hidden, false);
+  assert.equal(h.el('panel-overview').hidden, true);
+  assert.equal(h.el('strategyReport').textContent, 'Rendered strategy: verified');
+  assert.equal(h.calls.at(-1).name, 'admin_strategy_report');
+  assert.equal(h.calls.at(-1).params.p_days, 90);
+
+  h.el('strategyWindow').value = '30';
+  h.el('strategyWindow').listeners.change({ target: h.el('strategyWindow') });
+  await new Promise(resolve => setImmediate(resolve));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(h.calls.at(-1).name, 'admin_strategy_report');
+  assert.equal(h.calls.at(-1).params.p_days, 30);
 });

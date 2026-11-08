@@ -4,8 +4,10 @@
 
 - `/admin.html` — private, responsive dashboard UI. It is intentionally not linked from the public navigation.
 - `/admin.js` — Supabase authentication, RPC loading, tables, ticket expansion, filtering, pagination, and CSV export.
+- `/admin-strategy.js` — safe, aggregate-only Model lab rendering and nullable metric formatting.
 - `/admin.css` — dashboard styling.
 - `20261106_admin_dashboard.sql` — admin allowlist, admin-only RPC API, payment read model, and `pending_payments` RLS hardening.
+- `20261108_admin_strategy_report.sql` — allowlisted-admin production/shadow aggregate reporting; no raw shadow-log API.
 
 ## Security model
 
@@ -23,9 +25,11 @@ Direct anonymous/authenticated reads and writes on `admin_users` and `admin_paym
 
 Do not weaken these controls by adding a public SELECT policy on `pending_payments`, broadening the INSERT policy, or putting service credentials in `admin.js`.
 
-## Apply the database migration
+The Model lab uses `public.admin_strategy_report(integer)`. It checks the same allowlist and returns JSON aggregates only. Its `_admin_strategy_one(text, date)` helper is revoked from `PUBLIC`, `anon`, and `authenticated`. Neither function grants SELECT on `model_prediction_logs`, creates an RLS policy, nor returns teams, fixture IDs, features, rationales, or individual shadow picks. An authenticated non-admin receives SQLSTATE `42501` even though the outer function is executable by the `authenticated` role.
 
-Apply `20261106_admin_dashboard.sql` as a Supabase migration or in the Supabase SQL editor. It is transactional and contains no personal email address.
+## Apply the database migrations
+
+Apply `20261106_admin_dashboard.sql` first and then `20261108_admin_strategy_report.sql` as Supabase migrations or in the Supabase SQL editor. Both are transactional and contain no personal email address. The second migration is reporting-only: it does not activate `robust_conservative_v1`, alter optimizer selections, or modify official tickets.
 
 ## Allowlist an administrator
 
@@ -69,17 +73,31 @@ Never add an open sign-up/first-user-claims-admin function. Admin grants must re
 ## Dashboard features
 
 - Overview: total/today/30-day revenue, users, active passes, tickets, paid purchases, win rate, 14-day revenue, plan/status breakdowns, and data-quality warnings.
+- Model lab: production-optimizer versus private `robust_conservative_v1` sample counts, hit rate, flat-stake ROI/profit, odds, break-even win rate, maximum drawdown, Brier score, log loss, CLV coverage/results, complete daily accumulators, and market/league/odds-band segments.
 - Full tickets: original ticket text, selections, odds, rationales, outcomes, scores, stored-vs-actual selection counts, search/status filters, and pagination.
 - Accounts: name, email, phone, user ID, email confirmation, creation, last sign-in, paid purchases, spending, active pass, and admin role.
 - Purchases: customer, plan, actual amount, status, source, provider references, and access dates.
 - Current-page CSV exports for all three record sections. Spreadsheet formula injection is neutralised.
 - Read-only by design: no deletes, refunds, password changes, payment edits, or role changes in the browser.
 
+## Model lab metric semantics
+
+- **Production** means rows with `strategy = 'production'` (including legacy NULL strategy) and `selected = true`. It is optimizer output, not proof that the Auditor/Decision published an official ticket.
+- **Shadow** means `strategy = 'robust_conservative_v1'` and `shadow_selected = true`. It remains private and inactive.
+- The latest row per ticket date, fixture, market, and strategy is used. The date selector is inclusive and capped at 3,650 days.
+- Singles use one flat unit each. Wins return decimal odds, losses return zero, and void/DNB-push rows return one unit. Hit rate excludes pushes; ROI divides net profit by total bets.
+- Accumulators are evaluated only when every selected leg for that ticket date is settled with a valid price. A losing leg makes the return zero; void legs are removed from effective odds; an all-void accumulator returns stake.
+- Maximum drawdown is the largest decline from the prior running equity peak, including a starting equity of zero. It is chronological and descriptive, not a risk forecast.
+- Brier score and log loss use settled decisive selected rows with valid probabilities. Production displays model probability. Shadow displays robust probability when present, otherwise model probability. Empty samples remain unavailable.
+- CLV is `taken_odds / closing_odds - 1`. Accumulator CLV is computed only when every leg has a closing price. Missing coverage is displayed explicitly and never converted into a profitable result.
+- Segment tables use settled singles only. Small or missing samples trigger a warning; this dashboard never activates a strategy or claims that a small sample proves an edge.
+
 ## Checks
 
 ```sh
-node --test tests/auth_password_reset.test.cjs tests/admin_dashboard.test.cjs tests/admin_auth_flow.test.cjs
+node --test tests/*.test.cjs
 node --check admin.js
+node --check admin-strategy.js
 ```
 
-The JavaScript tests cover formatting, pagination, CSV injection protection, safe DOM rendering, element IDs, fixed search paths, admin gates, RLS hardening, and revenue semantics. Database integration/access checks must also be run against the deployed Supabase project before using the dashboard.
+The JavaScript tests cover formatting, pagination, CSV injection protection, safe DOM rendering, element IDs, fixed search paths, admin gates, RLS hardening, revenue semantics, aggregate-only Model lab access, segment merging, nullable metrics, DNB-push SQL, and honest empty states. Database integration/access checks must also be run against the deployed Supabase project before using the dashboard.
