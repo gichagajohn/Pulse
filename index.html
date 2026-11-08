@@ -311,7 +311,7 @@
   }
   #page-picks .card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
   .card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 22px; color: var(--text-muted); font-size: 11px; font-weight: 650; letter-spacing: .045em; text-transform: uppercase; }
-  .card-header .kickoff { color: var(--text-secondary); font-weight: 600; letter-spacing: 0; text-transform: none; }
+  .card-header .kickoff { color: var(--text-secondary); font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap; }
   .matchup { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 10px; min-height: 50px; margin-bottom: 22px; }
   .team { min-width: 0; color: var(--text-main); font-size: 16px; font-weight: 650; line-height: 1.35; }
   .team.away { text-align: right; }
@@ -1010,7 +1010,9 @@
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<script src="/fixture-time.js"></script>
+<script>
   /* ===================================================================
      STEP 1 ADDITION: Supabase connection + live ticket banner.
      Everything down to "END STEP 1 ADDITION" is new — nothing else
@@ -1524,13 +1526,16 @@
       const homeTeam = escapeHTML(p.home_team);
       const awayTeam = escapeHTML(p.away_team);
       const ticketDate = formatDisplayDate(p.ticket_date, { day: 'numeric', month: 'short' });
+      const kickoffLabel = window.FixtureTime ? FixtureTime.formatKickoffEAT(p.kickoff_utc) : '';
+      const kickoffDateTime = window.FixtureTime ? FixtureTime.kickoffISOString(p.kickoff_utc) : '';
+      const displayedKickoff = kickoffLabel ? escapeHTML(kickoffLabel) : ticketDate;
       const market = escapeHTML(p.market || '—');
       const rationale = escapeHTML(p.rationale || '');
       return `
         <article class="card" aria-label="${homeTeam} versus ${awayTeam}">
           <div class="card-header">
             <span>${league}</span>
-            <time class="kickoff" datetime="${escapeHTML(p.ticket_date)}">${ticketDate}</time>
+            <time class="kickoff" datetime="${escapeHTML(kickoffDateTime || p.ticket_date)}">${displayedKickoff}</time>
           </div>
           <div class="matchup">
             <div class="team">${homeTeam}</div>
