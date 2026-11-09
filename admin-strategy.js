@@ -60,8 +60,176 @@
     return `${covered}/${bets} (${formatPercent(row.clv_coverage)})`;
   }
 
-  function selectedProbability(strategy, preferRobust) {
-    const probability = strategy?.probability || {};
+  const BUCKET_LABELS = { selected: 'Optimizer selected', eligible_unselected: 'Eligible, not selected', ineligible: 'Not eligible' };
+  const BUCKET_ORDER = ['selected', 'eligible_unselected', 'ineligible'];
+
+  function healthValue(value, format) {
+    if (format === 'integer') return formatInteger(value);
+    if (format === 'signedPercent') return formatPercent(value, true);
+    if (format === 'plainPercent') return formatPercent(value);
+    if (format === 'decimal') return formatDecimal(value);
+    return value === null || value === undefined ? EMPTY : String(value);
+  }
+
+  function healthWarnings(provenance, calibration, scoring) {
+    const warnings = [];
+    const missingKickoff = number(provenance?.missing_kickoff) || 0;
+    if (missingKickoff > 0) warnings.push(`kickoff_utc is missing on ${formatInteger(missingKickoff)} candidate rows. Timing gates cannot pass until the worker populates it; treated as unverifiable, never as pre-match-safe.`);
+    const futurePrice = number(provenance?.price_after_prediction) || 0;
+    if (futurePrice > 0) warnings.push(`Provider prices updated after prediction on ${formatInteger(futurePrice)} rows. These are not usable pre-match evidence and must not be published or scored as clean.`);
+    const unverifiable = number(provenance?.eligible_unverifiable) || 0;
+    if (unverifiable > 0) warnings.push(`${formatInteger(unverifiable)} optimizer-eligible rows fail provenance verification and must resolve to NO BET, not publication.`);
+    const inactive = number(calibration?.inactive_rows) || 0;
+    if (inactive > 0) warnings.push(`Probability calibration is inactive on ${formatInteger(inactive)} rows. Production is using raw model/market blends; claimed EV is not calibrated EV.`);
+    const n = number(scoring?.n) || 0;
+    const settledDates = number(provenance?.settled_dates);
+    const fixtures = number(provenance?.distinct_settled_fixtures);
+    const thinWindow = (settledDates !== null && settledDates < 10) || (fixtures !== null && fixtures < 100) || n < 200;
+    if (thinWindow) warnings.push(`Only ${formatInteger(n)} settled, scored outputs across ${formatInteger(settledDates)} settled dates and ${formatInteger(fixtures)} fixtures. Descriptive only; do not promote or activate anything from this window.`);
+    return warnings;
+  }
+
+  function healthTable(doc, caption, headers, rows) {
+    const wrapper = element(doc, 'div', 'strategy-table-wrap');
+    const table = element(doc, 'table', 'strategy-table comparison-table');
+    table.append(element(doc, 'caption', '', caption));
+    const head = element(doc, 'thead');
+    const headerRow = element(doc, 'tr');
+    headers.forEach(label => headerRow.append(element(doc, 'th', '', label)));
+    head.append(headerRow);
+    table.append(head);
+    const body = element(doc, 'tbody');
+    rows.forEach(cells => {
+      const row = element(doc, 'tr');
+      cells.forEach((cell, index) => row.append(element(doc, index === 0 ? 'th' : 'td', '', cell)));
+      body.append(row);
+    });
+    table.append(body);
+    wrapper.append(table);
+    return wrapper;
+  }
+
+  function selectionBiasTable(doc, buckets) {
+    const rows = BUCKET_ORDER.map(key => {
+      const bucket = buckets?.[key];
+      return [
+        BUCKET_LABELS[key],
+        healthValue(bucket?.n, 'integer'),
+        healthValue(bucket?.mean_claimed_ev, 'signedPercent'),
+        healthValue(bucket?.mean_model_prob, 'plainPercent'),
+        healthValue(bucket?.observed_win_rate, 'plainPercent'),
+        healthValue(bucket?.flat_roi, 'signedPercent'),
+        key === 'selected'
+          ? `${healthValue(bucket?.wilson_low, 'plainPercent')} – ${healthValue(bucket?.wilson_high, 'plainPercent')}`
+          : EMPTY
+      ];
+    });
+    return healthTable(doc,
+      'Selection bias: optimizer output versus the eligible pool it leaves behind (flat one unit, settled win/loss rows only)',
+      ['Group', 'n', 'Mean claimed EV', 'Mean model p', 'Observed win rate', 'Flat-stake ROI', '95% Wilson interval (selected)'],
+      rows);
+  }
+
+  function scoringTable(doc, scoring) {
+    const clean = scoring?.timestamp_consistent || {};
+    const rows = [
+      ['Brier score (lower is better)', healthValue(scoring?.model_brier_score, 'decimal'), healthValue(scoring?.market_brier_score, 'decimal'), healthValue(clean?.model_brier_score, 'decimal'), healthValue(clean?.market_brier_score, 'decimal')],
+      ['Log loss (lower is better)', healthValue(scoring?.model_log_loss, 'decimal'), healthValue(scoring?.market_log_loss, 'decimal'), healthValue(clean?.model_log_loss, 'decimal'), healthValue(clean?.market_log_loss, 'decimal')],
+      ['Scored outputs', healthValue(scoring?.n, 'integer'), healthValue(scoring?.market_n, 'integer'), healthValue(clean?.n, 'integer'), healthValue(clean?.market_n, 'integer')]
+    ];
+    return healthTable(doc,
+      'Model versus no-vig market, overall and on timestamp-consistent rows only',
+      ['Metric', 'Model (all)', 'Market (all)', 'Model (timestamp-consistent)', 'Market (timestamp-consistent)'],
+      rows);
+  }
+
+  function challengerBlock(doc, challenger) {
+    const section = element(doc, 'section', 'segment-card');
+    section.append(element(doc, 'h3', '', 'Private shadow experiment & closing prices'));
+    const robustRows = number(challenger?.robust_probability_rows) || 0;
+    const shadowSelected = number(challenger?.shadow_selected_rows) || 0;
+    const closingRows = number(challenger?.closing_price_rows) || 0;
+    const coverage = number(challenger?.closing_price_coverage);
+    const lines = [
+      `Robust probabilities populated on ${formatInteger(robustRows)} rows.`,
+      `Shadow-selected rows: ${formatInteger(shadowSelected)}.`,
+      `Closing prices available on ${formatInteger(closingRows)} rows (${coverage === null ? EMPTY : formatPercent(coverage)} coverage).`
+    ];
+    lines.forEach(line => section.append(element(doc, 'p', 'health-line', line)));
+    if (robustRows === 0 || shadowSelected === 0 || closingRows === 0) {
+      section.append(element(doc, 'p', 'notice warning', 'Insufficient shadow/closing evidence. No challenger comparison, CLV assessment, or strategy activation is possible yet; the shadow experiment stays read-only.'));
+    } else {
+      section.append(element(doc, 'p', 'notice info', 'Coverage reported for monitoring only. Activation still requires an untouched chronological holdout and the pre-registered promotion rule.'));
+    }
+    return section;
+  }
+
+  function renderModelHealth(container, report, doc) {
+    const documentRef = doc || (typeof document !== 'undefined' ? document : null);
+    if (!container || !documentRef) throw new Error('A document and report container are required.');
+    container.replaceChildren();
+    if (!report || typeof report !== 'object') {
+      container.append(element(documentRef, 'div', 'notice warning', 'Model health diagnostics are unavailable.'));
+      return;
+    }
+    const provenance = report.provenance || {};
+    const calibration = report.calibration || {};
+    const scoring = report.scoring || {};
+    const warnings = healthWarnings(provenance, calibration, scoring);
+    warnings.forEach(warning => container.append(element(documentRef, 'div', 'notice warning', warning)));
+
+    const provenanceRows = [
+      ['Candidate rows (deduplicated)', healthValue(provenance.candidate_rows, 'integer')],
+      ['Settled candidate rows', healthValue(provenance.settled_candidate_rows, 'integer')],
+      ['Missing kickoff_utc', healthValue(provenance.missing_kickoff, 'integer')],
+      ['Prices updated after prediction', healthValue(provenance.price_after_prediction, 'integer')],
+      ['Rows missing usable price', healthValue(provenance.missing_price, 'integer')],
+      ['Max future price skew', provenance.max_future_price_skew_seconds === null || provenance.max_future_price_skew_seconds === undefined ? EMPTY : `${formatInteger(provenance.max_future_price_skew_seconds)}s`],
+      ['Optimizer-eligible rows failing verification', healthValue(provenance.eligible_unverifiable, 'integer')],
+      ['Calibration-active rows', healthValue(calibration.active_rows, 'integer')],
+      ['Calibration-inactive rows', healthValue(calibration.inactive_rows, 'integer')],
+      ['Max observed calibration samples', healthValue(calibration.max_observed_samples, 'integer')]
+    ];
+    container.append(healthTable(documentRef,
+      'Provenance and calibration gate status',
+      ['Check', 'Value'],
+      provenanceRows));
+
+    container.append(scoringTable(documentRef, scoring));
+    container.append(selectionBiasTable(documentRef, report.selection_bias));
+
+    const highEv = report.high_ev_10_plus || {};
+    container.append(healthTable(documentRef,
+      'Claimed model EV of at least 10% (hypothesis-generating only; not an activation rule)',
+      ['Group', 'n', 'Mean claimed EV', 'Mean model p', 'Mean market p', 'Observed', 'Flat-stake ROI', 'Selected'],
+      [[
+        'EV ≥ 10% candidates',
+        healthValue(highEv.n, 'integer'),
+        healthValue(highEv.mean_claimed_ev, 'signedPercent'),
+        healthValue(highEv.mean_model_prob, 'plainPercent'),
+        healthValue(highEv.mean_market_prob, 'plainPercent'),
+        healthValue(highEv.observed_win_rate, 'plainPercent'),
+        healthValue(highEv.flat_roi, 'signedPercent'),
+        healthValue(highEv.selected_rows, 'integer')
+      ]]));
+
+    container.append(challengerBlock(documentRef, report.challenger));
+    container.append(element(documentRef, 'p', 'methodology-note', 'Aggregates only over deduplicated production optimizer logs. Unselected rows are counterfactual diagnostics, not realized profit. Voids are excluded. Original published tickets are evaluated separately by ticket id. Diagnostics never activate a model or publish a selection.'));
+  }
+
+  function renderHealthLoading(container, doc) {
+    const documentRef = doc || (typeof document !== 'undefined' ? document : null);
+    if (!container) return;
+    container.replaceChildren(element(documentRef, 'div', 'empty-state', 'Loading model health diagnostics…'));
+  }
+
+  function renderHealthError(container, message, doc) {
+    const documentRef = doc || (typeof document !== 'undefined' ? document : null);
+    if (!container) return;
+    container.replaceChildren(element(documentRef, 'div', 'notice warning', message || 'Model health diagnostics could not be loaded.'));
+  }
+
+  function selectedProbability(strategy, preferRobust) {    const probability = strategy?.probability || {};
     const robustCount = number(probability.robust_predictions) || 0;
     const useRobust = preferRobust && robustCount > 0;
     const prefix = useRobust ? 'robust' : 'model';
@@ -307,6 +475,9 @@
     titleCase,
     render,
     renderLoading,
-    renderError
+    renderError,
+    renderModelHealth,
+    renderHealthError,
+    renderHealthLoading
   };
 });

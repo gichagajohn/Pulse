@@ -130,6 +130,16 @@
           <label><span>Ticket-date window</span><select id="strategyWindow"><option value="30">Last 30 days</option><option value="90" selected>Last 90 days</option><option value="365">Last 365 days</option><option value="3650">Up to 10 years</option></select></label>
           <span class="filter-note">One flat unit per bet · Aggregates only · No team-level shadow data</span>
         </div>
+        <div class="sub-heading">
+          <p class="eyebrow">Stage 1 · Data quality</p>
+          <h3>Model health &amp; provenance</h3>
+          <p>Aggregate checks for kickoff and price timestamps, calibration readiness, model-vs-market scoring, selection bias, and shadow coverage. Read-only; diagnostics never activate a model or publish a selection.</p>
+        </div>
+        <div id="modelHealthReport" class="model-health-report" aria-live="polite"><div class="empty-state">Open this tab to load model health diagnostics.</div></div>
+        <div class="sub-heading">
+          <p class="eyebrow">Stage 2 · Private experiment</p>
+          <h3>Production vs shadow</h3>
+        </div>
         <div id="strategyReport" class="strategy-report" aria-live="polite"><div class="empty-state">Open this tab to load private strategy diagnostics.</div></div>
       </section>
 

@@ -49,7 +49,7 @@ function emptyOverview() {
   };
 }
 
-async function createHarness({ session, isAdmin, strategyReport = {} }) {
+async function createHarness({ session, isAdmin, strategyReport = {}, healthReport = {} }) {
   const tabNames = ['overview', 'strategy', 'tickets', 'users', 'purchases'];
   const navButtons = tabNames.map(tab => {
     const button = new FakeElement(`tab-${tab}`);
@@ -84,6 +84,7 @@ async function createHarness({ session, isAdmin, strategyReport = {} }) {
       if (name === 'is_admin') return { data: isAdmin, error: null };
       if (name === 'admin_dashboard_overview') return { data: emptyOverview(), error: null };
       if (name === 'admin_strategy_report') return { data: strategyReport, error: null };
+      if (name === 'admin_model_intelligence_report') return { data: healthReport, error: null };
       throw new Error(`Unexpected RPC: ${name}`);
     }
   };
@@ -97,7 +98,12 @@ async function createHarness({ session, isAdmin, strategyReport = {} }) {
         render(element, data) {
           element.textContent = `Rendered strategy: ${data.marker || 'empty'}`;
         },
-        renderError(element, message) { element.textContent = message; }
+        renderError(element, message) { element.textContent = message; },
+        renderHealthLoading(element) { element.textContent = 'Loading model health'; },
+        renderModelHealth(element, data) {
+          element.textContent = `Rendered model health: ${data.marker || 'empty'}`;
+        },
+        renderHealthError(element, message) { element.textContent = message; }
       }
     },
     console,
@@ -161,21 +167,23 @@ test('an allowlisted admin reaches the overview through authorised RPCs', async 
   assert.equal(h.el('totalRevenue').textContent, 'KSh 0');
 });
 
-test('an admin can open Model lab and reload its aggregate RPC with a new window', async () => {
+test('an admin can open Model lab and reload its aggregate RPCs with a new window', async () => {
   const session = { access_token: 'admin-token', user: { email: 'admin@example.com' } };
-  const h = await createHarness({ session, isAdmin: true, strategyReport: { marker: 'verified' } });
+  const h = await createHarness({ session, isAdmin: true, strategyReport: { marker: 'verified' }, healthReport: { marker: 'checked' } });
+  const lastCall = name => [...h.calls].reverse().find(call => call.name === name);
   await h.clickTab('strategy');
   assert.equal(h.el('pageTitle').textContent, 'Model lab');
   assert.equal(h.el('panel-strategy').hidden, false);
   assert.equal(h.el('panel-overview').hidden, true);
   assert.equal(h.el('strategyReport').textContent, 'Rendered strategy: verified');
-  assert.equal(h.calls.at(-1).name, 'admin_strategy_report');
-  assert.equal(h.calls.at(-1).params.p_days, 90);
+  assert.equal(h.el('modelHealthReport').textContent, 'Rendered model health: checked');
+  assert.equal(lastCall('admin_strategy_report').params.p_days, 90);
+  assert.equal(lastCall('admin_model_intelligence_report').params.p_days, 90);
 
   h.el('strategyWindow').value = '30';
   h.el('strategyWindow').listeners.change({ target: h.el('strategyWindow') });
   await new Promise(resolve => setImmediate(resolve));
   await new Promise(resolve => setImmediate(resolve));
-  assert.equal(h.calls.at(-1).name, 'admin_strategy_report');
-  assert.equal(h.calls.at(-1).params.p_days, 30);
+  assert.equal(lastCall('admin_strategy_report').params.p_days, 30);
+  assert.equal(lastCall('admin_model_intelligence_report').params.p_days, 30);
 });

@@ -259,3 +259,10 @@ tbody tr:hover { background: #fafcfa; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+.sub-heading { margin: 20px 0 10px; }
+.sub-heading h3 { margin: 2px 0 4px; font-size: 15px; }
+.sub-heading p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.model-health-report { display: grid; gap: 12px; margin-bottom: 18px; }
+.model-health-report .notice { margin: 0; }
+.health-line { margin: 4px 0 0; color: var(--muted); font-size: 12px; }

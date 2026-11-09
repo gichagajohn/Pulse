@@ -351,18 +351,27 @@ if (typeof document !== 'undefined') {
         return;
       }
       view.renderLoading(byId('strategyReport'));
-      const { data, error } = await sb.rpc('admin_strategy_report', { p_days: state.strategy.days });
+      view.renderHealthLoading(byId('modelHealthReport'));
+      const strategyPromise = sb.rpc('admin_strategy_report', { p_days: state.strategy.days });
+      const healthPromise = sb.rpc('admin_model_intelligence_report', { p_days: state.strategy.days });
+      const [{ data, error }, healthResult] = await Promise.all([strategyPromise, healthPromise]);
       if (request !== state.strategy.request) return;
       if (error) {
         view.renderError(byId('strategyReport'), `Strategy diagnostics could not be loaded: ${friendlyError(error)}`);
-        return;
+      } else {
+        try {
+          view.render(byId('strategyReport'), data || {});
+        } catch (renderError) {
+          view.renderError(byId('strategyReport'), `Strategy diagnostics could not be rendered: ${friendlyError(renderError)}`);
+        }
       }
       try {
-        view.render(byId('strategyReport'), data || {});
-        setLastUpdated(data?.generated_at);
-      } catch (renderError) {
-        view.renderError(byId('strategyReport'), `Strategy diagnostics could not be rendered: ${friendlyError(renderError)}`);
+        if (healthResult?.error) view.renderHealthError(byId('modelHealthReport'), `Model health diagnostics could not be loaded: ${friendlyError(healthResult.error)}`);
+        else view.renderModelHealth(byId('modelHealthReport'), healthResult?.data || {});
+      } catch (healthError) {
+        view.renderHealthError(byId('modelHealthReport'), `Model health diagnostics could not be rendered: ${friendlyError(healthError)}`);
       }
+      setLastUpdated(data?.generated_at);
     }
 
     async function loadCollection(kind) {

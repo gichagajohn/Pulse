@@ -6,8 +6,11 @@
 - `/admin.js` — Supabase authentication, RPC loading, tables, ticket expansion, filtering, pagination, and CSV export.
 - `/admin-strategy.js` — safe, aggregate-only Model lab rendering and nullable metric formatting.
 - `/admin.css` — dashboard styling.
+- `/model-validation.js` — dependency-free provenance gate and conservative-value mathematics shared by tests and intended for the prediction worker (see `database/MODEL_INTELLIGENCE.md`).
 - `20261106_admin_dashboard.sql` — admin allowlist, admin-only RPC API, payment read model, and `pending_payments` RLS hardening.
 - `20261108_admin_strategy_report.sql` — allowlisted-admin production/shadow aggregate reporting; no raw shadow-log API.
+- `20261109_model_intelligence_diagnostics.sql` — allowlisted-admin Model health & provenance aggregates (kickoff/price timestamps, calibration readiness, model-vs-market scoring, selection bias, shadow/closing coverage); activates nothing.
+- `database/MODEL_INTELLIGENCE.md` — staged model-intelligence implementation contract (provenance gates → shadow challenger → holdout-gated promotion).
 - `20261108_access_pricing_100_500.sql` — current Daily KSh 100 and Weekly KSh 500 pending-payment policy; historical transaction amounts are not rewritten.
 
 ## Security model
@@ -28,9 +31,13 @@ Do not weaken these controls by adding a public SELECT policy on `pending_paymen
 
 The Model lab uses `public.admin_strategy_report(integer)`. It checks the same allowlist and returns JSON aggregates only. Its `_admin_strategy_one(text, date)` helper is revoked from `PUBLIC`, `anon`, and `authenticated`. Neither function grants SELECT on `model_prediction_logs`, creates an RLS policy, nor returns teams, fixture IDs, features, rationales, or individual shadow picks. An authenticated non-admin receives SQLSTATE `42501` even though the outer function is executable by the `authenticated` role.
 
+The Model health & provenance panel uses `public.admin_model_intelligence_report(integer)`. It applies the same allowlist pattern, returns aggregates only (counts, means, calibration readiness, scoring versus the no-vig market, selection-bias buckets, shadow/closing coverage), and activates nothing. It returns no team names, fixture identifiers outside aggregates, features, rationales, or individual rows.
+
 ## Apply the database migrations
 
 Apply `20261106_admin_dashboard.sql` first and then `20261108_admin_strategy_report.sql` as Supabase migrations or in the Supabase SQL editor. Both are transactional and contain no personal email address. The second migration is reporting-only: it does not activate `robust_conservative_v1`, alter optimizer selections, or modify official tickets.
+
+`20261109_model_intelligence_diagnostics.sql` is likewise transactional and reporting-only: it adds `public.admin_model_intelligence_report(integer)` for the allowlisted admin Model lab health panel. It does not activate `robust_conservative_v1`, alter optimizer selections, backfill timestamps, or modify official tickets. It was applied to production on 2026-11-09.
 
 ## Allowlist an administrator
 
@@ -74,7 +81,7 @@ Never add an open sign-up/first-user-claims-admin function. Admin grants must re
 ## Dashboard features
 
 - Overview: total/today/30-day revenue, users, active passes, tickets, paid purchases, win rate, 14-day revenue, plan/status breakdowns, and data-quality warnings.
-- Model lab: production-optimizer versus private `robust_conservative_v1` sample counts, hit rate, flat-stake ROI/profit, odds, break-even win rate, maximum drawdown, Brier score, log loss, CLV coverage/results, complete daily accumulators, and market/league/odds-band segments.
+- Model lab: model health & provenance diagnostics (kickoff/price timestamp failures, calibration readiness, model-vs-market Brier/log-loss, selection-bias buckets, shadow and closing-price coverage), plus production-optimizer versus private `robust_conservative_v1` sample counts, hit rate, flat-stake ROI/profit, odds, break-even win rate, maximum drawdown, Brier score, log loss, CLV coverage/results, complete daily accumulators, and market/league/odds-band segments.
 - Full tickets: original ticket text, selections, odds, rationales, outcomes, scores, stored-vs-actual selection counts, search/status filters, and pagination.
 - Accounts: name, email, phone, user ID, email confirmation, creation, last sign-in, paid purchases, spending, active pass, and admin role.
 - Purchases: customer, plan, actual amount, status, source, provider references, and access dates.
