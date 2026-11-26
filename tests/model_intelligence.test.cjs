@@ -13,6 +13,7 @@ const viewSource = fs.readFileSync(path.join(root, 'admin-strategy.js'), 'utf8')
 const adminSource = fs.readFileSync(path.join(root, 'admin.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'admin.html'), 'utf8');
 const sql = fs.readFileSync(path.join(root, 'database', '20261109_model_intelligence_diagnostics.sql'), 'utf8');
+const calibrationSql = fs.readFileSync(path.join(root, 'database', '20261112_model_calibration_readiness.sql'), 'utf8');
 
 class FakeElement {
   constructor(tag) {
@@ -125,14 +126,54 @@ test('joint ticket math multiplies odds and probabilities and fails closed', () 
   assert.equal(validation.summarizeTicket([{ prob: 0.6, odds: 0.5, effective_n: 100 }]), null);
 });
 
-test('calibration readiness mirrors the guarded activation rule', () => {
+test('calibration readiness requires diverse data and a date-clustered holdout gate', () => {
   const cold = validation.calibrationReadiness({ wins: 3, losses: 4 });
   assert.equal(cold.active, false);
   assert.match(cold.reason, /Need at least 200 settled outputs/);
   const oneClassShort = validation.calibrationReadiness({ wins: 199, losses: 1 });
   assert.equal(oneClassShort.active, false);
-  const ready = validation.calibrationReadiness({ wins: 120, losses: 110 });
+
+  const insufficientFixtures = validation.calibrationReadiness({
+    wins: 120, losses: 110, distinctFixtures: 49, settledDates: 20
+  });
+  assert.equal(insufficientFixtures.sample_ready, false);
+  assert.match(insufficientFixtures.reason, /50 distinct fixtures/);
+
+  const insufficientDates = validation.calibrationReadiness({
+    wins: 120, losses: 110, distinctFixtures: 60, settledDates: 9
+  });
+  assert.equal(insufficientDates.sample_ready, false);
+  assert.match(insufficientDates.reason, /10 settled dates/);
+
+  const sampleReady = validation.calibrationReadiness({
+    wins: 120, losses: 110, distinctFixtures: 60, settledDates: 15
+  });
+  assert.equal(sampleReady.sample_ready, true);
+  assert.equal(sampleReady.active, false);
+  assert.match(sampleReady.reason, /date-clustered 95% interval/);
+
+  const ungrouped = validation.calibrationReadiness({
+    wins: 120, losses: 110, distinctFixtures: 60, settledDates: 15,
+    holdoutSettledDates: 6, holdoutDateGrouped: false,
+    holdoutLogLossImprovement: 0.02, holdoutLogLossImprovementCiLow: 0.005
+  });
+  assert.equal(ungrouped.active, false);
+  const unclustered = validation.calibrationReadiness({
+    wins: 120, losses: 110, distinctFixtures: 60, settledDates: 15,
+    holdoutSettledDates: 6, holdoutDateGrouped: true,
+    holdoutUncertaintyCluster: 'fixture_id',
+    holdoutLogLossImprovement: 0.02, holdoutLogLossImprovementCiLow: 0.005
+  });
+  assert.equal(unclustered.active, false);
+
+  const ready = validation.calibrationReadiness({
+    wins: 120, losses: 110, distinctFixtures: 60, settledDates: 15,
+    holdoutSettledDates: 6, holdoutDateGrouped: true,
+    holdoutUncertaintyCluster: 'ticket_date',
+    holdoutLogLossImprovement: 0.02, holdoutLogLossImprovementCiLow: 0.005
+  });
   assert.equal(ready.active, true);
+  assert.equal(ready.holdout_ready, true);
   assert.equal(ready.reason, null);
 });
 
@@ -150,6 +191,22 @@ test('diagnostics migration is aggregate-only, admin-gated, and activates nothin
   assert.doesNotMatch(sql, /home_team|away_team|rationale|ticket_text|home_score|away_score|home_advantage/i);
   assert.doesNotMatch(sql, /insert into|update public\.|delete from|drop table|truncate/i);
   assert.doesNotMatch(sql, /robust_conservative_v1[^']*activat/i);
+});
+
+test('calibration readiness migration joins official run IDs and reports the full sample gate', () => {
+  assert.match(calibrationSql, /join public\.prediction_tickets t[\s\S]*t\.run_id = l\.run_id/i);
+  assert.match(calibrationSql, /calibration_log_counts as \([\s\S]*from logs\s*\), calibration as \([\s\S]*from calibration_log_counts lc\s*cross join calibration_counts cc/i);
+  assert.match(calibrationSql, /when l\.raw_model_prob is not null then l\.raw_model_prob[\s\S]*when l\.calibration_version is null then l\.model_prob/i);
+  assert.match(calibrationSql, /join public\.ticket_selections s[\s\S]*s\.ticket_date = t\.ticket_date[\s\S]*s\.fixture_id = l\.fixture_id[\s\S]*s\.market = l\.market/i);
+  assert.match(calibrationSql, /count\(distinct fixture_id\) as distinct_fixtures/i);
+  assert.match(calibrationSql, /count\(distinct ticket_date\) as settled_dates/i);
+  assert.match(calibrationSql, /50 as min_distinct_fixtures_required/i);
+  assert.match(calibrationSql, /10 as min_settled_dates_required/i);
+  assert.match(calibrationSql, /5 as min_holdout_dates_required/i);
+  assert.match(calibrationSql, /date_grouped_holdout_required/i);
+  assert.match(calibrationSql, /date_clustered_uncertainty_required/i);
+  assert.match(calibrationSql, /is_admin\(\)/i);
+  assert.doesNotMatch(calibrationSql, /insert into|update public\.|delete from|drop table|truncate/i);
 });
 
 test('Model lab wires the health panel without injecting HTML or querying private tables', () => {
@@ -185,7 +242,14 @@ const fixtureReport = () => ({
     distinct_settled_fixtures: 27,
     settled_dates: 3
   },
-  calibration: { active_rows: 0, inactive_rows: 324, max_observed_samples: 7 },
+  calibration: {
+    active_rows: 0, inactive_rows: 324, max_observed_samples: 7,
+    settled_outputs: 14, wins: 4, losses: 10, distinct_fixtures: 9, settled_dates: 3,
+    min_samples_required: 200, min_per_class_required: 30,
+    min_distinct_fixtures_required: 50, min_settled_dates_required: 10,
+    min_holdout_dates_required: 5, sample_ready: false,
+    date_grouped_holdout_required: true, date_clustered_uncertainty_required: true
+  },
   scoring: {
     n: 204, market_n: 204,
     model_brier_score: 0.18439, market_brier_score: 0.16109,
@@ -210,6 +274,9 @@ test('renderModelHealth surfaces provenance failures, selection bias and missing
   assert.match(rendered, /Provider prices updated after prediction on 162 rows/);
   assert.match(rendered, /40 optimizer-eligible rows fail provenance verification/);
   assert.match(rendered, /calibration is inactive on 324 rows/i);
+  assert.match(rendered, /Official calibration sample gate is not met: 14 settled outputs, 9 fixtures, and 3 dates/);
+  assert.match(rendered, /Current published-run settled calibration outputs/);
+  assert.match(rendered, /Later date-grouped holdout and positive date-clustered 95% interval required/);
   assert.match(rendered, /Only 204 settled, scored outputs across 3 settled dates and 27 fixtures/);
   assert.match(rendered, /Optimizer selected/);
   assert.match(rendered, /Eligible, not selected/);

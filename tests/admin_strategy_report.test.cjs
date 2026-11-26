@@ -10,6 +10,7 @@ const source = fs.readFileSync(path.join(root, 'admin-strategy.js'), 'utf8');
 const adminSource = fs.readFileSync(path.join(root, 'admin.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'admin.html'), 'utf8');
 const sql = fs.readFileSync(path.join(root, 'database', '20261108_admin_strategy_report.sql'), 'utf8');
+const currentRunSql = fs.readFileSync(path.join(root, 'database', '20261112_exact_run_strategy_report.sql'), 'utf8');
 
 class FakeElement {
   constructor(tag) {
@@ -152,6 +153,13 @@ test('aggregate RPC and helper are admin-gated, locked down, and do not grant lo
   assert.doesNotMatch(sql, /grant select on (table )?public\.model_prediction_logs/i);
   assert.doesNotMatch(sql, /create policy/i);
   assert.doesNotMatch(sql, /home_team|away_team|features_json|fixture_id'\s*,/i);
+});
+
+test('follow-up migration restricts append-only strategy diagnostics to exact current ticket runs', () => {
+  assert.match(currentRunSql, /join public\.prediction_tickets t[\s\S]*t\.ticket_date = l\.ticket_date[\s\S]*t\.run_id = l\.run_id[\s\S]*t\.status in \('published', 'no_bet'\)/i);
+  assert.match(currentRunSql, /partition by l\.run_id, l\.ticket_date, l\.fixture_id, l\.market/i);
+  assert.match(currentRunSql, /revoke all on function public\._admin_strategy_one\(text, date\) from authenticated/i);
+  assert.doesNotMatch(currentRunSql, /update public\.|delete from public\.|insert into public\./i);
 });
 
 test('SQL implements DNB pushes, complete accumulators, probability scoring, drawdown, and CLV', () => {

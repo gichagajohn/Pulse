@@ -7,6 +7,9 @@
 
   const MIN_CALIBRATION_SAMPLES = 200;
   const MIN_CALIBRATION_PER_CLASS = 30;
+  const MIN_CALIBRATION_DISTINCT_FIXTURES = 50;
+  const MIN_CALIBRATION_SETTLED_DATES = 10;
+  const MIN_CALIBRATION_HOLDOUT_DATES = 5;
   // Provider clocks occasionally run a moment ahead of the worker; the historical
   // failures this gate exists for were hours-to-days ahead, not seconds.
   const DEFAULT_MAX_FUTURE_PRICE_SKEW_SECONDS = 120;
@@ -202,33 +205,78 @@
     };
   }
 
-  // Mirror of the guarded calibration rule already used in production logs,
-  // kept in one place so the worker and the reports can share the thresholds.
+  // Data readiness is necessary but not sufficient for activation. The worker
+  // must also provide a later date-grouped holdout and a positive date-clustered
+  // uncertainty interval; aggregate dashboard counts alone never activate it.
   function calibrationReadiness(input, options) {
     const settings = options || {};
     const minSamples = Number.isInteger(settings.minSamples) ? settings.minSamples : MIN_CALIBRATION_SAMPLES;
     const minPerClass = Number.isInteger(settings.minPerClass) ? settings.minPerClass : MIN_CALIBRATION_PER_CLASS;
+    const minFixtures = Number.isInteger(settings.minFixtures) ? settings.minFixtures : MIN_CALIBRATION_DISTINCT_FIXTURES;
+    const minDates = Number.isInteger(settings.minDates) ? settings.minDates : MIN_CALIBRATION_SETTLED_DATES;
+    const minHoldoutDates = Number.isInteger(settings.minHoldoutDates) ? settings.minHoldoutDates : MIN_CALIBRATION_HOLDOUT_DATES;
     const source = input || {};
     const wins = Math.max(0, Math.floor(Number(source.wins) || 0));
     const losses = Math.max(0, Math.floor(Number(source.losses) || 0));
     const samples = Number.isInteger(source.samples) ? source.samples : wins + losses;
-    const active = samples >= minSamples && wins >= minPerClass && losses >= minPerClass;
+    const distinctFixtures = Math.max(0, Math.floor(Number(source.distinctFixtures ?? source.distinct_fixtures) || 0));
+    const settledDates = Math.max(0, Math.floor(Number(source.settledDates ?? source.settled_dates) || 0));
+    const holdoutSettledDates = Math.max(0, Math.floor(Number(source.holdoutSettledDates ?? source.holdout_settled_dates) || 0));
+    const holdoutDateGrouped = source.holdoutDateGrouped === true || source.holdout_date_grouped === true;
+    const holdoutUncertaintyCluster = source.holdoutUncertaintyCluster ?? source.holdout_uncertainty_cluster;
+    const ci = source.holdoutLogLossImprovementCi95 ?? source.holdout_log_loss_improvement_ci_95;
+    const ciLow = Number(source.holdoutLogLossImprovementCiLow ?? source.holdout_log_loss_improvement_ci_low ?? (Array.isArray(ci) ? ci[0] : undefined));
+    const improvement = Number(source.holdoutLogLossImprovement ?? source.holdout_log_loss_improvement);
+    const sampleReady = samples >= minSamples
+      && wins >= minPerClass
+      && losses >= minPerClass
+      && distinctFixtures >= minFixtures
+      && settledDates >= minDates;
+    const holdoutReady = holdoutDateGrouped
+      && holdoutUncertaintyCluster === 'ticket_date'
+      && holdoutSettledDates >= minHoldoutDates
+      && Number.isFinite(improvement)
+      && improvement > 0.001
+      && Number.isFinite(ciLow)
+      && ciLow > 0;
+    const active = sampleReady && holdoutReady;
+    let reason = null;
+    if (samples < minSamples || wins < minPerClass || losses < minPerClass) {
+      reason = `Need at least ${minSamples} settled outputs and ${minPerClass} per class; have ${samples} (${wins} wins/${losses} losses).`;
+    } else if (distinctFixtures < minFixtures || settledDates < minDates) {
+      reason = `Need at least ${minFixtures} distinct fixtures and ${minDates} settled dates; have ${distinctFixtures} fixtures across ${settledDates} dates.`;
+    } else if (!holdoutReady) {
+      reason = `Sample gate met; activation still needs a date-grouped holdout with at least ${minHoldoutDates} later dates, log-loss improvement above 0.001, and a positive date-clustered 95% interval.`;
+    }
     return {
       active,
-      reason: active
-        ? null
-        : `Need at least ${minSamples} settled outputs and ${minPerClass} per class; have ${samples} (${wins} wins/${losses} losses).`,
+      sample_ready: sampleReady,
+      holdout_ready: holdoutReady,
+      holdout_date_grouped: holdoutDateGrouped,
+      holdout_uncertainty_cluster: holdoutUncertaintyCluster || null,
+      reason,
       samples,
       wins,
       losses,
+      distinct_fixtures: distinctFixtures,
+      settled_dates: settledDates,
+      holdout_settled_dates: holdoutSettledDates,
+      holdout_log_loss_improvement: Number.isFinite(improvement) ? improvement : null,
+      holdout_log_loss_improvement_ci_low: Number.isFinite(ciLow) ? ciLow : null,
       min_samples: minSamples,
-      min_per_class: minPerClass
+      min_per_class: minPerClass,
+      min_distinct_fixtures: minFixtures,
+      min_settled_dates: minDates,
+      min_holdout_dates: minHoldoutDates
     };
   }
 
   return {
     MIN_CALIBRATION_SAMPLES,
     MIN_CALIBRATION_PER_CLASS,
+    MIN_CALIBRATION_DISTINCT_FIXTURES,
+    MIN_CALIBRATION_SETTLED_DATES,
+    MIN_CALIBRATION_HOLDOUT_DATES,
     DEFAULT_MAX_FUTURE_PRICE_SKEW_SECONDS,
     WILSON_Z_95,
     parseTime,

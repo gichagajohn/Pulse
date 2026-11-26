@@ -83,9 +83,16 @@ tickets.
    markets jointly via the Dixon–Coles grid; independent legs across fixtures
    via `summarizeTicket`). Optimize conservative whole-ticket value. No
    arbitrary leg, market, league, or odds caps; `NO BET` is a valid answer.
-4. Calibration stays guarded: 200 settled outputs, 30 per class, **and** at
-   least 50 distinct fixtures and 10 distinct settled dates before activation;
-   otherwise `guarded_platt_v1` remains inactive and probabilities are raw.
+4. Calibration stays guarded: 200 settled official outputs, 30 per class, at
+   least 50 distinct fixtures, and 10 settled dates. Join only the current
+   published ticket's exact `run_id`; legacy/null-run tickets and superseded
+   optimizer runs are excluded; if a logged row is marked calibrated but its
+   raw probability is missing, exclude it rather than recalibrating `model_prob`.
+   Split by distinct ticket dates, fit on earlier
+   dates only, and reserve at least five later date clusters. Activate only
+   when holdout log-loss improvement exceeds 0.001 and its date-clustered 95%
+   bootstrap interval is wholly positive; otherwise `guarded_platt_v2` remains
+   inactive and probabilities stay raw.
 
 ## Stage C — promotion gates (the only path to production)
 
