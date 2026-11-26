@@ -16,9 +16,8 @@ test('Daily and Weekly prices are KSh 100/500 in display, payment labels, edge f
   assert.match(html, /daily: \{ title: 'Daily Pass', duration: '24 hours', amount: 100 \}/);
   assert.match(html, /weekly: \{ title: 'Weekly Pass', duration: '7 days', amount: 500 \}/);
   assert.doesNotMatch(html, /KSh 1,000|KSh 5,000|KSh 1000|KSh 5000/);
-  assert.match(edgeSource, /daily:\s*100/);
-  assert.match(edgeSource, /weekly:\s*500/);
-  assert.doesNotMatch(edgeSource, /daily:\s*1000|weekly:\s*5000/);
+  assert.match(edgeSource, /const amount = plan === 'daily' \? 100 : 500/);
+  assert.doesNotMatch(edgeSource, /1000|5000/);
   assert.match(pricingSql, /plan = 'daily' and amount = 100/i);
   assert.match(pricingSql, /plan = 'weekly' and amount = 500/i);
   assert.doesNotMatch(pricingSql, /amount = 1000|amount = 5000/i);
@@ -28,9 +27,21 @@ test('STK initiation has no fragile remote import and preserves authenticated se
   assert.doesNotMatch(edgeSource, /^\s*import\s/m);
   assert.match(edgeSource, /\/auth\/v1\/user/);
   assert.match(edgeSource, /\/rest\/v1\/pending_payments/);
-  assert.match(edgeSource, /if \(!authHeader\) return jsonResponse\(\{ error: "Not signed in\." \}, 401\)/);
+  assert.match(edgeSource, /if \(!authHeader\) return jsonResponse\(\{ error:/);
+  assert.match(edgeSource, /if \(!userResponse\.ok\) return jsonResponse\(\{ error:/);
   assert.match(edgeSource, /if \(!pendingResponse\.ok\)/);
-  assert.match(edgeSource, /Contact support before retrying/);
+  assert.match(edgeSource, /Contact support before (?:retrying|paying again)/);
+});
+
+test('STK persistence matches pending_payments columns and the browser response contract', () => {
+  const pendingStart = edgeSource.indexOf('fetch(`${SUPABASE_URL}/rest/v1/pending_payments`');
+  const pendingEnd = edgeSource.indexOf('if (!pendingResponse.ok)', pendingStart);
+  assert.ok(pendingStart >= 0 && pendingEnd > pendingStart);
+  const pendingInsert = edgeSource.slice(pendingStart, pendingEnd);
+  assert.doesNotMatch(pendingInsert, /phone_number\s*:/i);
+  assert.match(edgeSource, /phone_number:\s*formattedPhone/);
+  assert.match(edgeSource, /checkoutRequestId: phData\.CheckoutRequestID/);
+  assert.match(html, /data\.checkoutRequestId/);
 });
 
 test('failed STK requests clear the requesting state without claiming a push was confirmed', () => {

@@ -1,13 +1,11 @@
 // Dependency-free M-Pesa STK initiation via PayHero and Supabase REST/Auth.
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const PAYHERO_USERNAME = Deno.env.get("PAYHERO_API_USERNAME");
 const PAYHERO_PASSWORD = Deno.env.get("PAYHERO_API_PASSWORD");
 const PAYHERO_CHANNEL_ID = Deno.env.get("PAYHERO_CHANNEL_ID");
 const PAYHERO_CALLBACK_URL = Deno.env.get("PAYHERO_CALLBACK_URL");
 
-const PLAN_AMOUNTS = { daily: 100, weekly: 500 };
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type"
@@ -20,58 +18,58 @@ function jsonResponse(body, status = 200) {
   });
 }
 
-function normalizePhone(raw) {
-  const digits = raw.replace(/\D/g, "");
-  if (digits.startsWith("254")) return digits;
-  if (digits.startsWith("0")) return "254" + digits.slice(1);
-  if (digits.startsWith("7") || digits.startsWith("1")) return "254" + digits;
-  return digits;
-}
-
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return jsonResponse({ error: "Not signed in." }, 401);
+    if (!authHeader) return jsonResponse({ error: "Missing authorization." }, 401);
 
     const userResponse = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: authHeader }
+      headers: { Authorization: authHeader, apikey: SUPABASE_SERVICE_ROLE_KEY }
     });
-    if (!userResponse.ok) return jsonResponse({ error: "Not signed in." }, 401);
+    if (!userResponse.ok) return jsonResponse({ error: "Unauthorized." }, 401);
     const user = await userResponse.json();
-    if (!user?.id) return jsonResponse({ error: "Not signed in." }, 401);
 
-    const { phone, plan } = await req.json();
-    const amount = PLAN_AMOUNTS[plan];
-    if (!phone || !amount) return jsonResponse({ error: "Invalid phone or plan." }, 400);
+    const { plan, phone } = await req.json();
+    if (!['daily', 'weekly'].includes(plan)) return jsonResponse({ error: "Invalid plan." }, 400);
+    if (!phone) return jsonResponse({ error: "Phone number required." }, 400);
 
+    let formattedPhone = phone.replace(/\D/g, '');
+    if (formattedPhone.startsWith('0')) formattedPhone = '254' + formattedPhone.slice(1);
+    else if (formattedPhone.startsWith('7') || formattedPhone.startsWith('1')) formattedPhone = '254' + formattedPhone;
+    if (formattedPhone.length !== 12) return jsonResponse({ error: "Invalid phone number." }, 400);
+
+    const amount = plan === 'daily' ? 100 : 500;
     const externalReference = `FP-${user.id.slice(0, 8)}-${Date.now()}`;
     const authToken = btoa(`${PAYHERO_USERNAME}:${PAYHERO_PASSWORD}`);
-    const phRes = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
+
+    const stkResponse = await fetch("https://backend.payhero.co.ke/api/v2/payments", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${authToken}`
-      },
+      headers: { "Content-Type": "application/json", Authorization: `Basic ${authToken}` },
       body: JSON.stringify({
         amount,
-        phone_number: normalizePhone(phone),
-        channel_id: Number(PAYHERO_CHANNEL_ID),
-        provider: "m-pesa",
+        phone_number: formattedPhone,
+        channel_id: parseInt(PAYHERO_CHANNEL_ID),
         external_reference: externalReference,
-        callback_url: PAYHERO_CALLBACK_URL
+        callback_url: PAYHERO_CALLBACK_URL,
+        provider: "m-pesa"
       })
     });
 
-    const phData = await phRes.json();
-    if (!phRes.ok || !phData?.success) {
-      return jsonResponse({
-        error: phData?.error_message || "Could not start payment."
-      }, 502);
+    const stkText = await stkResponse.text();
+    let phData;
+    try {
+      phData = JSON.parse(stkText);
+    } catch {
+      console.error("PayHero non-JSON response", stkResponse.status, stkText.slice(0, 500));
+      return jsonResponse({ error: "Payment provider returned an invalid response. Please try again." }, 502);
     }
+    if (!stkResponse.ok || !phData.success || phData.error_code) {
+      console.error("PayHero rejected STK", stkResponse.status, phData.error_code || phData.error_message || "Unknown error");
+      return jsonResponse({ error: "Could not initiate M-Pesa payment. Please check your number and try again." }, 400);
+    }
+    if (!phData.CheckoutRequestID) return jsonResponse({ error: "Payment provider did not return a checkout ID." }, 502);
 
     const pendingResponse = await fetch(`${SUPABASE_URL}/rest/v1/pending_payments`, {
       method: "POST",
@@ -86,22 +84,21 @@ Deno.serve(async (req) => {
         plan,
         amount,
         external_reference: externalReference,
+        payhero_reference: phData.reference || phData.transaction_reference || null,
         checkout_request_id: phData.CheckoutRequestID,
         status: "pending"
       })
     });
-
     if (!pendingResponse.ok) {
-      console.error("Pending payment insert failed", pendingResponse.status, externalReference);
-      return jsonResponse({
-        error: "PayHero accepted the request, but the payment could not be recorded. Contact support before retrying.",
-        reference: externalReference
-      }, 500);
+      const details = await pendingResponse.text();
+      console.error("Could not persist pending payment", pendingResponse.status, details.slice(0, 500));
+      return jsonResponse({ error: "Payment was initiated but tracking could not be saved. Contact support before paying again." }, 500);
     }
 
-    return jsonResponse({ checkoutRequestId: phData.CheckoutRequestID });
-  } catch (err) {
-    console.error("STK push error", err);
-    return jsonResponse({ error: "Payment service is temporarily unavailable." }, 500);
+    // Match the browser contract: index.html polls using data.checkoutRequestId.
+    return jsonResponse({ success: true, checkoutRequestId: phData.CheckoutRequestID });
+  } catch (error) {
+    console.error("STK push error", error?.message || error);
+    return jsonResponse({ error: error.message }, 500);
   }
 });
