@@ -10,6 +10,9 @@
 - `20261106_admin_dashboard.sql` — admin allowlist, admin-only RPC API, payment read model, and `pending_payments` RLS hardening.
 - `20261108_admin_strategy_report.sql` — allowlisted-admin production/shadow aggregate reporting; no raw shadow-log API.
 - `20261109_model_intelligence_diagnostics.sql` — allowlisted-admin Model health & provenance aggregates (kickoff/price timestamps, calibration readiness, model-vs-market scoring, selection bias, shadow/closing coverage); activates nothing.
+- `20261110_public_access_hardening.sql` — revokes browser-role writes on safe ticket views and execution of the outcome-mutating helper; preserves reads.
+- `20261112_exact_run_strategy_report.sql` — follow-up replacement for the private strategy helper; includes only logs joined to the exact current `published` or `no_bet` ticket run.
+- `20261112_model_calibration_readiness.sql` — replaces the diagnostics RPC with exact run-linked official-selection counts and the full sample/diversity gate; aggregates only and activates nothing.
 - `database/MODEL_INTELLIGENCE.md` — staged model-intelligence implementation contract (provenance gates → shadow challenger → holdout-gated promotion).
 - `20261108_access_pricing_100_500.sql` — current Daily KSh 100 and Weekly KSh 500 pending-payment policy; historical transaction amounts are not rewritten.
 
@@ -31,13 +34,19 @@ Do not weaken these controls by adding a public SELECT policy on `pending_paymen
 
 The Model lab uses `public.admin_strategy_report(integer)`. It checks the same allowlist and returns JSON aggregates only. Its `_admin_strategy_one(text, date)` helper is revoked from `PUBLIC`, `anon`, and `authenticated`. Neither function grants SELECT on `model_prediction_logs`, creates an RLS policy, nor returns teams, fixture IDs, features, rationales, or individual shadow picks. An authenticated non-admin receives SQLSTATE `42501` even though the outer function is executable by the `authenticated` role.
 
-The Model health & provenance panel uses `public.admin_model_intelligence_report(integer)`. It applies the same allowlist pattern, returns aggregates only (counts, means, calibration readiness, scoring versus the no-vig market, selection-bias buckets, shadow/closing coverage), and activates nothing. It returns no team names, fixture identifiers outside aggregates, features, rationales, or individual rows.
+The Model health & provenance panel uses `public.admin_model_intelligence_report(integer)`. It applies the same allowlist pattern and returns aggregates only. Calibration sample readiness counts decisive selections joined to the exact current published `run_id`; it requires 200 outputs, 30 per class, 50 distinct fixtures, and 10 settled dates. This is only the sample gate: activation still requires a later date-grouped holdout and a positive date-clustered 95% uncertainty interval. The RPC does not calculate or grant that activation, and returns no team names, fixture identifiers outside aggregates, features, rationales, or individual rows.
+
+`prediction_tickets_safe` and `ticket_selections_safe` are public read-only projections. Apply `20261110_public_access_hardening.sql` to explicitly revoke `INSERT`, `UPDATE`, and `DELETE` from browser roles while retaining `SELECT`. The `refresh_prediction_ticket_outcome(bigint)` SECURITY DEFINER helper is for the database-owned settlement trigger, not a public RPC; browser roles must not execute it. Do not test these privileges with writes against production—verify using catalog privilege queries after a reviewed migration.
 
 ## Apply the database migrations
 
 Apply `20261106_admin_dashboard.sql` first and then `20261108_admin_strategy_report.sql` as Supabase migrations or in the Supabase SQL editor. Both are transactional and contain no personal email address. The second migration is reporting-only: it does not activate `robust_conservative_v1`, alter optimizer selections, or modify official tickets.
 
 `20261109_model_intelligence_diagnostics.sql` is likewise transactional and reporting-only: it adds `public.admin_model_intelligence_report(integer)` for the allowlisted admin Model lab health panel. It does not activate `robust_conservative_v1`, alter optimizer selections, backfill timestamps, or modify official tickets. It was applied to production on 2026-11-09.
+
+`20261110_public_access_hardening.sql` is transactional and can be applied after reviewing the deployed safe-view definition. It preserves public `SELECT`, explicitly revokes browser-role DML, and revokes browser execution of the outcome-mutating helper; it changes no rows.
+
+Before either `20261112` report migration, verify that `run_id` exists on both `model_prediction_logs` and `prediction_tickets` (from Football's `20261110_run_linkage.sql`; apply that first if missing). Then apply `20261112_exact_run_strategy_report.sql` to replace the strategy helper so its production/shadow comparison uses only the exact current `published` or `no_bet` run. Apply `20261112_model_calibration_readiness.sql` to replace the health RPC with exact run-linked official-selection counts and the full sample/diversity gate. Both are aggregate/report-only, change no data, and activate no model. The calibration migration keeps the log-row aggregates separate from the sample-count aggregate so the PostgreSQL `GROUP BY` rules are satisfied.
 
 ## Allowlist an administrator
 

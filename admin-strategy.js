@@ -81,6 +81,9 @@
     if (unverifiable > 0) warnings.push(`${formatInteger(unverifiable)} optimizer-eligible rows fail provenance verification and must resolve to NO BET, not publication.`);
     const inactive = number(calibration?.inactive_rows) || 0;
     if (inactive > 0) warnings.push(`Probability calibration is inactive on ${formatInteger(inactive)} rows. Production is using raw model/market blends; claimed EV is not calibrated EV.`);
+    if (calibration?.sample_ready === false) {
+      warnings.push(`Official calibration sample gate is not met: ${formatInteger(calibration.settled_outputs)} settled outputs, ${formatInteger(calibration.distinct_fixtures)} fixtures, and ${formatInteger(calibration.settled_dates)} dates. It requires 200 outputs, 30 per class, 50 fixtures, and 10 dates.`);
+    }
     const n = number(scoring?.n) || 0;
     const settledDates = number(provenance?.settled_dates);
     const fixtures = number(provenance?.distinct_settled_fixtures);
@@ -188,7 +191,12 @@
       ['Optimizer-eligible rows failing verification', healthValue(provenance.eligible_unverifiable, 'integer')],
       ['Calibration-active rows', healthValue(calibration.active_rows, 'integer')],
       ['Calibration-inactive rows', healthValue(calibration.inactive_rows, 'integer')],
-      ['Max observed calibration samples', healthValue(calibration.max_observed_samples, 'integer')]
+      ['Max observed calibration samples', healthValue(calibration.max_observed_samples, 'integer')],
+      ['Current published-run settled calibration outputs', healthValue(calibration.settled_outputs, 'integer')],
+      ['Distinct official calibration fixtures', healthValue(calibration.distinct_fixtures, 'integer')],
+      ['Official calibration settled dates', healthValue(calibration.settled_dates, 'integer')],
+      ['Sample/diversity gate', calibration.sample_ready === true ? 'Met' : calibration.sample_ready === false ? 'Not met' : EMPTY],
+      ['Further activation gate', 'Later date-grouped holdout and positive date-clustered 95% interval required']
     ];
     container.append(healthTable(documentRef,
       'Provenance and calibration gate status',
