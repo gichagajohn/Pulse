@@ -6,7 +6,7 @@
 <title>Football Pulse — Data-Driven Match Intelligence</title>
 <meta name="description" content="Probability-led football analysis across major leagues and selected competitions, with disciplined daily selections and a transparent public record.">
 <link rel="canonical" href="https://pulse-iota-teal.vercel.app/">
-<meta name="theme-color" content="#087a55">
+<meta name="theme-color" content="#080d18">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Football Pulse">
 <meta property="og:locale" content="en_KE">
@@ -766,6 +766,168 @@
     .comparison-table th, .comparison-table td { padding: 12px 14px; }
     .performance-method { padding: 12px 14px; }
   }
+
+  /* Football Pulse editorial night theme */
+  :root {
+    color-scheme: dark;
+    --bg: #080d18;
+    --surface: #0d1524;
+    --surface-subtle: #111c2e;
+    --surface-raised: #17243a;
+    --surface-inverse: #f1f5fa;
+    --text-main: #f1f5fa;
+    --text-secondary: #a8b5c9;
+    --text-muted: #8190a7;
+    --text-inverse: #080d18;
+    --border: #24334a;
+    --border-strong: #34445d;
+    --border-inverse: rgba(255,255,255,.14);
+    --brand: #35d6a0;
+    --brand-hover: #5be3b4;
+    --brand-active: #1cb984;
+    --brand-light: #102b2a;
+    --brand-soft: #112b2b;
+    --amber: #e5b85c;
+    --amber-light: #302718;
+    --red: #e66c75;
+    --red-hover: #f2838b;
+    --red-light: #321e2b;
+    --blue: #7bb5e2;
+    --blue-light: #172a3d;
+    --shadow-xs: 0 1px 2px rgba(0,0,0,.22);
+    --shadow-sm: 0 14px 38px rgba(0,0,0,.22);
+    --shadow-modal: 0 24px 64px rgba(0,0,0,.55);
+    --container: 1200px;
+    --header-height: 74px;
+  }
+  html { background: var(--bg); }
+  body { background: var(--bg); color: var(--text-main); }
+  header { background: rgba(8,13,24,.91); border-color: var(--border); backdrop-filter: blur(16px); }
+  .nav-container { gap: 24px; }
+  .logo { color: var(--text-main); letter-spacing: -.03em; }
+  .logo-icon, .footer-brand-mark { background: var(--brand); color: #071510; border-radius: 9px; }
+  .nav-links { gap: 2px; }
+  .nav-links a { color: var(--text-secondary); border-radius: 7px; }
+  .nav-links a:hover { color: var(--text-main); background: var(--surface-subtle); }
+  .nav-links a.active { color: var(--brand); background: transparent; }
+  .nav-links a.active::after { bottom: -1px; left: 12px; right: 12px; background: var(--brand); }
+  .btn, .mobile-menu-toggle { border-radius: 7px; transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s ease; }
+  .btn-primary, .btn-brand { background: var(--brand); border-color: var(--brand); color: #061711; font-weight: 700; }
+  .btn-primary:hover:not(:disabled), .btn-brand:hover:not(:disabled) { background: var(--brand-hover); border-color: var(--brand-hover); color: #061711; }
+  .btn-secondary, .btn-ghost { color: var(--text-main); background: var(--surface); border-color: var(--border-strong); }
+  .btn-secondary:hover:not(:disabled), .btn-ghost:hover:not(:disabled) { background: var(--surface-raised); border-color: #53637c; }
+  .user-chip-email { color: var(--text-secondary); }
+  .user-avatar { background: var(--brand-light); color: var(--brand); border-color: var(--border); }
+  main { width: min(100% - 56px, var(--container)); }
+  .page { padding-top: 54px; }
+  #page-home { padding-top: 0; }
+  .hero { padding: 88px 0 56px; border-color: var(--border); }
+  .hero::before { background: radial-gradient(ellipse at 78% 25%, rgba(53,214,160,.10), transparent 32%), radial-gradient(ellipse at 58% 75%, rgba(229,184,92,.035), transparent 38%); }
+  .badge-status { color: var(--brand); letter-spacing: .09em; text-transform: uppercase; }
+  .badge-status .pulse-dot { background: var(--brand); }
+  .badge-status .pulse-dot::after { border-color: rgba(53,214,160,.35); }
+  .hero h1 { max-width: 790px; color: var(--text-main); font-size: clamp(42px,5.6vw,68px); font-weight: 650; line-height: 1.03; letter-spacing: -.06em; }
+  .hero p { max-width: 650px; color: var(--text-secondary); font-size: 16px; line-height: 1.75; }
+  .hero-trust-grid { gap: 0; border: 1px solid var(--border); border-radius: 12px; background: rgba(13,21,36,.88); overflow: hidden; }
+  .hero-trust-card { min-height: 104px; padding: 19px 18px; border: 0; border-right: 1px solid var(--border); border-radius: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
+  .hero-trust-card:last-child { border-right: 0; }
+  .hero-trust-label { color: var(--text-muted); }
+  .hero-trust-value { color: var(--text-main); font-size: 18px; }
+  .hero-trust-detail, .hero-notes { color: var(--text-muted); }
+  .hero-note svg { color: var(--brand); }
+  .section-header { margin-bottom: 22px; }
+  .section-kicker { color: var(--brand); font-size: 10px; letter-spacing: .13em; }
+  .section-title { color: var(--text-main); letter-spacing: -.045em; }
+  .section-desc, .method-footnote, .performance-note { color: var(--text-secondary); }
+  .ticket-banner { border: 1px solid var(--border); border-radius: 12px; background: linear-gradient(110deg,#111c2e,#101b2b 55%,#132622); box-shadow: var(--shadow-sm); }
+  .ticket-stats { border-color: var(--border); }
+  .stat-item .val { color: var(--text-main); }
+  .stat-item .lbl { color: var(--text-muted); }
+  .ticket-banner .btn-brand { background: var(--brand); border-color: var(--brand); color: #061711; }
+  .grid { gap: 0; }
+  #page-home .grid { border-color: var(--border); }
+  .card, .price-card, .breakdown-box, .chart-box, .outcome-panel, .about-content, .support-card, .legal-content { border-color: var(--border); background: var(--surface); box-shadow: var(--shadow-xs); }
+  #page-home .grid .card { border-color: var(--border); background: transparent; }
+  .card h3, .method-title, .chart-title, .outcome-heading { color: var(--text-main); }
+  .method-copy, .outcome-subtitle, .metric-detail, .performance-method, .performance-coverage, .payment-assurance, .payment-responsibility { color: var(--text-secondary); }
+  .text-link, .result-filter[aria-pressed="true"] { color: var(--brand); }
+  .result-filter { border-color: var(--border); background: var(--surface); color: var(--text-secondary); }
+  .result-filter:hover { background: var(--surface-raised); color: var(--text-main); }
+  .outcome-strip li, .outcome-empty { border-color: var(--border); }
+  .results-head, .breakdown-table th { background: var(--surface-subtle); color: var(--text-muted); }
+  .results-shell, .breakdown-table-wrap { border-color: var(--border); background: var(--surface); }
+  .results-row, .breakdown-table td, .breakdown-table th { border-color: var(--border); color: var(--text-secondary); }
+  .results-row strong, .breakdown-table td strong { color: var(--text-main); }
+  .breakdown-table tbody tr:hover, .results-row:hover { background: var(--surface-subtle); }
+  .metric-card { border-color: var(--border); background: var(--surface); box-shadow: none; }
+  .metric-card .num, .metric-card .label { color: var(--text-main); }
+  .metric-card .metric-detail { color: var(--text-muted); }
+  .performance-method { border-color: var(--border); background: var(--surface-subtle); }
+  .chart-box { background: var(--surface); }
+  .chart-bar { background: var(--brand); }
+  .bar-chart, .bar-item, .bar-label, .bar-value { color: var(--text-secondary); }
+  .legend-dot { background: var(--brand); }
+  .legend-dot.loss { background: var(--red); }
+  .price-card { position: relative; border-radius: 11px; }
+  .price-card.featured { border-color: rgba(53,214,160,.58); background: linear-gradient(160deg,#112a2a 0%,#0d1524 55%); box-shadow: 0 18px 50px rgba(0,0,0,.25); }
+  .price-title, .price-amount { color: var(--text-main); }
+  .price-sub, .features-list li { color: var(--text-secondary); }
+  .features-list li.disabled { color: var(--text-muted); }
+  .badge-featured { background: var(--brand); color: #071510; }
+  .comparison-table-wrap { overflow-x: auto; border-color: var(--border); }
+  .comparison-table { background: var(--surface); color: var(--text-secondary); }
+  .comparison-table caption, .comparison-table th { color: var(--text-main); }
+  .comparison-table th, .comparison-table td { border-color: var(--border); }
+  .comparison-table thead { background: var(--surface-subtle); }
+  .comparison-table tbody tr:nth-child(even) { background: rgba(255,255,255,.018); }
+  .about-section + .about-section { border-color: var(--border); }
+  .about-section h3, .about-section strong { color: var(--text-main); }
+  .about-section p, .about-section li { color: var(--text-secondary); }
+  .support-card h3 { color: var(--text-main); }
+  .support-card p { color: var(--text-secondary); }
+  footer { border-color: var(--border); background: #060a12; }
+  .footer-brand, .footer-text { color: var(--text-secondary); }
+  .footer-links a { color: var(--text-muted); }
+  .mobile-menu-toggle { border-color: var(--border); background: var(--surface); color: var(--text-main); }
+  .mobile-nav-panel { border-color: var(--border); background: var(--surface); box-shadow: var(--shadow-sm); }
+  .mobile-nav-links a { color: var(--text-secondary); }
+  .mobile-nav-links a.active { color: var(--brand); }
+  .modal-overlay { background: rgba(2,6,13,.78); backdrop-filter: blur(8px); }
+  .modal-box { border-color: var(--border); background: var(--surface); color: var(--text-main); box-shadow: var(--shadow-modal); }
+  .modal-title, .modal-box h3 { color: var(--text-main); }
+  .modal-description, .payment-responsibility, .payment-modal-assurance { color: var(--text-secondary); }
+  .auth-input, input, select { border-color: var(--border-strong); background: #0a1220; color: var(--text-main); }
+  .auth-input::placeholder, input::placeholder { color: #718099; }
+  .auth-field-label { color: var(--text-secondary); }
+  .payment-order, .payment-step { border-color: var(--border); background: var(--surface-subtle); color: var(--text-secondary); }
+  .legal-content p { color: var(--text-secondary); }
+  .legal-content strong { color: var(--text-main); }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline-color: var(--brand); }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  @media (max-width: 900px) {
+    main { width: min(100% - 36px, var(--container)); }
+    .hero-trust-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .hero-trust-card:nth-child(2) { border-right: 0; }
+    .hero-trust-card:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
+  }
+  @media (max-width: 620px) {
+    main { width: min(100% - 32px, var(--container)); }
+    .nav-container { width: calc(100% - 32px); }
+    .hero { padding: 58px 0 36px; }
+    .hero h1 { max-width: 560px; font-size: clamp(38px,11vw,52px); }
+    .hero p { font-size: 15px; }
+    .hero-trust-card { min-height: 95px; padding: 14px 12px; }
+    .hero-trust-value { font-size: 15px; }
+    .page { padding: 38px 0 60px; }
+    .section-title { font-size: clamp(25px,7vw,34px); }
+    .ticket-banner { gap: 22px; }
+    .pricing-grid { gap: 12px; }
+    .comparison-table { min-width: 620px; }
+    .modal-box { background: var(--surface); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; }
+  }
 </style>
 </head>
 <body>
@@ -935,7 +1097,7 @@
           <span class="pulse-dot" aria-hidden="true"></span>
           Matchday intelligence active
         </div>
-        <h1 id="home-title">Football analysis. Backed by data. Measured by results.</h1>
+        <h1 id="home-title">Football Analysis. Backed by Data. Measured by Results.</h1>
         <p>Probability-led match analysis, disciplined daily selections, and a transparent public record of every settled prediction—including the losses.</p>
         <div class="hero-actions">
           <button class="btn btn-primary" onclick="goTo('picks')">

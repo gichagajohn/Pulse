@@ -37,6 +37,7 @@ class FakeElement {
   replaceChildren(...children) { this.children = [...children]; }
   addEventListener(name, callback) { this.listeners[name] = callback; }
   setAttribute(name, value) { this.attributes[name] = String(value); }
+  getAttribute(name) { return this.attributes[name] ?? null; }
 }
 
 function emptyOverview() {
@@ -165,6 +166,23 @@ test('an allowlisted admin reaches the overview through authorised RPCs', async 
   assert.deepEqual(h.calls.map(call => call.name), ['is_admin', 'admin_dashboard_overview']);
   assert.equal(h.el('adminIdentity').textContent, 'admin@example.com');
   assert.equal(h.el('totalRevenue').textContent, 'KSh 0');
+});
+
+test('mobile admin navigation exposes its state and closes after selecting a section', async () => {
+  const session = { access_token: 'admin-token', user: { email: 'admin@example.com' } };
+  const h = await createHarness({ session, isAdmin: true });
+  const toggle = h.el('adminNavToggle');
+  const nav = h.el('adminNav');
+
+  toggle.listeners.click();
+  assert.equal(toggle.getAttribute('aria-expanded'), 'true');
+  assert.equal(toggle.textContent, 'Close');
+  assert.equal(nav.classList.values.has('is-open'), true);
+
+  await h.clickTab('strategy');
+  assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(toggle.textContent, 'Menu');
+  assert.equal(nav.classList.values.has('is-open'), false);
 });
 
 test('an admin can open Model lab and reload its aggregate RPCs with a new window', async () => {

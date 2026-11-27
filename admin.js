@@ -820,8 +820,21 @@ if (typeof document !== 'undefined') {
         event.currentTarget.disabled = true;
         try { await loadTab(state.activeTab); } finally { event.currentTarget.disabled = false; }
       });
+      const adminNavToggle = byId('adminNavToggle');
+      const adminNav = byId('adminNav');
+      adminNavToggle.addEventListener('click', () => {
+        const isOpen = adminNavToggle.getAttribute('aria-expanded') === 'true';
+        adminNavToggle.setAttribute('aria-expanded', String(!isOpen));
+        adminNavToggle.textContent = isOpen ? 'Menu' : 'Close';
+        adminNav.classList.toggle('is-open', !isOpen);
+      });
       document.querySelectorAll('[data-tab]').forEach(button => {
-        button.addEventListener('click', () => switchTab(button.dataset.tab));
+        button.addEventListener('click', () => {
+          switchTab(button.dataset.tab);
+          adminNavToggle.setAttribute('aria-expanded', 'false');
+          adminNavToggle.textContent = 'Menu';
+          adminNav.classList.toggle('is-open', false);
+        });
       });
       document.querySelectorAll('[data-export]').forEach(button => {
         button.addEventListener('click', () => exportCurrent(button.dataset.export));
