@@ -99,6 +99,28 @@
     };
   }
 
+  function cumulativeNetUnits(selections) {
+    const rows = chronologicalSelections(
+      (Array.isArray(selections) ? selections : []).filter(row => OUTCOMES.includes(row?.outcome))
+    );
+    if (!rows.length) return { complete: false, samples: 0, missingPrices: 0, points: [], finalUnits: null };
+
+    const missingPrices = rows.filter(row => !validOdds(row.odds)).length;
+    if (missingPrices) return { complete: false, samples: rows.length, missingPrices, points: [], finalUnits: null };
+
+    let runningUnits = 0;
+    const points = rows.map(row => {
+      if (row.outcome === 'win') runningUnits += Number(row.odds) - 1;
+      else if (row.outcome === 'loss') runningUnits -= 1;
+      return {
+        ticket_date: String(row.ticket_date || ''),
+        outcome: row.outcome,
+        netUnits: Number(runningUnits.toFixed(6))
+      };
+    });
+    return { complete: true, samples: rows.length, missingPrices: 0, points, finalUnits: points.at(-1).netUnits };
+  }
+
   function groupPerformance(selections, groupBy = 'month', limit = 6) {
     const rows = (Array.isArray(selections) ? selections : []).filter(row => OUTCOMES.includes(row?.outcome));
     const groups = new Map();
@@ -259,6 +281,7 @@
     validOdds,
     priceImpliedProbability,
     calculatePerformance,
+    cumulativeNetUnits,
     groupPerformance,
     buildAccumulatorTickets,
     calculateAccumulatorPerformance,

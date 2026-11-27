@@ -6,7 +6,9 @@
 <title>Football Pulse — Data-Driven Match Intelligence</title>
 <meta name="description" content="Probability-led football analysis across major leagues and selected competitions, with disciplined daily selections and a transparent public record.">
 <link rel="canonical" href="https://pulse-iota-teal.vercel.app/">
+<link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#087a55">
+<meta name="theme-color" content="#0d1411" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Football Pulse">
 <meta property="og:locale" content="en_KE">
@@ -27,12 +29,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- STEP 1 ADDITION: Supabase JS client library -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Version pinned with Subresource Integrity; update only with a reviewed hash. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.js" integrity="sha384-qafw21c/iciq0VXsi9FzkfoQv5I/V0iqE4lSNcKXPnW9/UTJLnv5CcN4FHxVLnKg" crossorigin="anonymous"></script>
 <style>
   /* Football Pulse design system — restrained, accessible, and product-focused */
   :root {
-    color-scheme: light;
+    color-scheme: light dark;
     --bg: #f6f7f5;
     --surface: #ffffff;
     --surface-subtle: #f1f3f0;
@@ -222,7 +224,6 @@
   .mobile-menu-toggle[aria-expanded="true"] .menu-icon { display: none; }
   .mobile-menu-toggle[aria-expanded="true"] .menu-close-icon { display: block; }
   .mobile-nav-panel { display: none; }
-  .mobile-nav-select-wrap { display: none !important; }
 
   /* Page structure */
   main { width: min(100% - 48px, var(--container)); margin-inline: auto; }
@@ -478,6 +479,22 @@
   .auth-switch a { color: var(--brand); font-weight: 600; }
   .auth-switch a:hover { text-decoration: underline; text-underline-offset: 3px; }
   .payment-status { min-height: 20px; margin-top: 14px; color: var(--text-muted); font-size: 12px; line-height: 1.5; text-align: center; }
+  .payment-phone-hint { display: block; margin-top: 6px; color: var(--text-muted); font-size: 11px; line-height: 1.45; }
+  .payment-phone-preview { min-height: 18px; margin-top: 6px; color: var(--brand); font-size: 11px; font-weight: 600; }
+  .payment-recovery-actions { margin-top: 14px; }
+  .payment-recovery-actions[hidden], .payment-recovery-actions [hidden], .active-access-notice[hidden], .mobile-purchase-bar[hidden] { display: none !important; }
+  .payment-countdown { min-height: 16px; margin-top: 6px; color: var(--text-muted); font-size: 11px; text-align: center; }
+  .payment-modal-help { margin-top: 16px; padding: 11px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-subtle); color: var(--text-secondary); font-size: 11px; line-height: 1.6; }
+  .payment-modal-help a { color: var(--brand); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+  .active-access-notice { margin: 16px auto 0; padding: 12px 16px; border: 1px solid var(--brand); border-radius: var(--radius-sm); background: var(--brand-soft); color: var(--text-main); font-size: 12px; line-height: 1.6; }
+  .mobile-purchase-bar { display: none; }
+  .singles-trend { margin: 20px 0 28px; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+  .singles-net-trend { min-height: 140px; margin-top: 12px; }
+  .singles-net-trend svg { width: 100%; height: auto; overflow: visible; }
+  .trend-gridline { stroke: var(--border); stroke-width: 1; }
+  .trend-line { fill: none; stroke: var(--brand); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .trend-point { fill: var(--surface); stroke: var(--brand); stroke-width: 2; }
+  .trend-summary { margin-top: 8px; color: var(--text-muted); font-size: 11px; }
 
   /* Loading, empty, and error states */
   .state-panel { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: 12px; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
@@ -563,6 +580,9 @@
     .mobile-nav-links a.active { color: var(--brand); font-weight: 600; }
     .mobile-nav-cta { margin-top: 6px; padding-top: 12px; border-top: 1px solid var(--border); }
     .mobile-nav-cta .btn { width: 100%; }
+    .mobile-purchase-bar { position: fixed; right: 0; bottom: 0; left: 0; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); background: var(--surface); box-shadow: 0 -6px 20px rgba(18,24,21,.08); color: var(--text-main); font-size: 12px; }
+    .mobile-purchase-bar strong { margin-left: 4px; color: var(--brand); font-size: 14px; white-space: nowrap; }
+    body.modal-open .mobile-purchase-bar { display: none; }
 
     main { width: min(100% - 32px, var(--container)); }
     .page { padding: 40px 0 72px; }
@@ -766,6 +786,48 @@
     .comparison-table th, .comparison-table td { padding: 12px 14px; }
     .performance-method { padding: 12px 14px; }
   }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1411;
+      --surface: #141d18;
+      --surface-subtle: #1b2821;
+      --surface-raised: #19241e;
+      --surface-inverse: #203229;
+      --text-main: #edf4ef;
+      --text-secondary: #bdcbc2;
+      --text-muted: #95a49a;
+      --text-inverse: #edf4ef;
+      --border: #2b3a31;
+      --border-strong: #405247;
+      --brand: #50c990;
+      --brand-hover: #68d8a3;
+      --brand-active: #7ce2b2;
+      --brand-light: #173b2b;
+      --brand-soft: #13271d;
+      --amber: #f0bd5c;
+      --amber-light: #35290f;
+      --red: #ff858c;
+      --red-hover: #ff9ca1;
+      --red-light: #3a1d21;
+      --blue: #8abbe4;
+      --blue-light: #172c3d;
+      --shadow-xs: 0 1px 2px rgba(0,0,0,.28);
+      --shadow-sm: 0 4px 14px rgba(0,0,0,.24);
+      --shadow-modal: 0 24px 64px rgba(0,0,0,.55);
+    }
+    body { background: var(--bg); }
+    header { background: rgba(20,29,24,.96); }
+    .hero-trust-card { border-color: rgba(95,125,105,.62); background: rgba(20,29,24,.88); }
+    .bar-chart { background: repeating-linear-gradient(to bottom, transparent 0, transparent 48px, #27342c 49px, transparent 50px); }
+    .skeleton-line, .skeleton-bar { background: linear-gradient(90deg,#1b2821 20%,#26352c 38%,#1b2821 56%); background-size: 240% 100%; }
+    .legend-dot.loss, .bar-fill { background: #46534b; }
+    .payment-responsibility, .noscript-banner { border-color: #645022; color: #f0d391; }
+    .features-list li.disabled { color: #a5b0a9; }
+    .features-list li.disabled::before { color: #a5b0a9; }
+    .result-filter[aria-pressed="true"] { border-color: #367254; }
+    .mobile-purchase-bar { box-shadow: 0 -6px 20px rgba(0,0,0,.35); }
+  }
 </style>
 </head>
 <body>
@@ -815,16 +877,6 @@
     </div>
   </div>
 
-  <!-- Retained as a state mirror for the existing navigation logic. -->
-  <div class="mobile-nav-select-wrap" aria-hidden="true">
-    <select id="mobileNavSelect" class="mobile-nav-select" tabindex="-1">
-      <option value="home">Overview</option>
-      <option value="picks">Daily Picks</option>
-      <option value="results">Results</option>
-      <option value="performance">Performance</option>
-      <option value="pricing">Pricing</option>
-    </select>
-  </div>
 </header>
 
 <!-- Authentication modal: Supabase handlers and IDs are preserved. -->
@@ -913,13 +965,20 @@
     <form id="paymentForm" onsubmit="event.preventDefault(); submitPayment();" novalidate>
       <div class="form-field">
         <label class="auth-field-label" for="paymentPhone">Safaricom phone number</label>
-        <input type="tel" id="paymentPhone" placeholder="0712 345 678" class="auth-input" autocomplete="tel" inputmode="tel">
+        <input type="tel" id="paymentPhone" placeholder="0712 345 678" class="auth-input" autocomplete="tel" inputmode="tel" aria-describedby="paymentPhoneHint paymentPhonePreview">
+        <small id="paymentPhoneHint" class="payment-phone-hint">Use a Kenyan mobile number beginning 07, 01, +254 7, or +254 1.</small>
+        <p id="paymentPhonePreview" class="payment-phone-preview" aria-live="polite"></p>
       </div>
       <div class="form-actions">
         <button class="btn btn-secondary" type="button" onclick="closePaymentModal()">Cancel</button>
         <button class="btn btn-brand" id="paymentSubmitBtn" type="submit">Send request</button>
       </div>
     </form>
+    <div class="payment-recovery-actions" id="paymentRecoveryActions" hidden>
+      <button class="btn btn-secondary btn-block" type="button" id="paymentCheckStatusBtn" onclick="checkPaymentStatus()">Check status again</button>
+    </div>
+    <p id="paymentCountdown" class="payment-countdown" aria-live="off"></p>
+    <p class="payment-modal-help"><strong>Paid but no access?</strong> Do not pay again. <a href="mailto:jp925196@gmail.com?subject=Football%20Pulse%20Paid%20Access%20Support">Contact paid-access support</a> with your M-Pesa receipt or the reference shown above. Never share your PIN.</p>
     <p class="payment-responsibility"><strong>18+ only.</strong> Probabilistic analysis, not guaranteed outcomes. Never stake money you cannot afford to lose.</p>
     <p id="paymentStatus" class="payment-status" aria-live="polite"></p>
   </div>
@@ -1163,6 +1222,13 @@
     </div>
     <p class="performance-coverage" id="perf-price-coverage">Checking settled-price coverage…</p>
     <p class="performance-method"><strong>Singles accounting:</strong> each selection is treated as one unit staked at its recorded decimal odds. A win profits <strong>odds − 1</strong>, a loss loses one unit, and a void returns stake. These figures diagnose individual selections and must not be described as accumulator profitability. Hit rate alone does not establish profitability.</p>
+    <section class="singles-trend" aria-labelledby="singles-trend-title">
+      <div class="breakdown-header">
+        <h3 class="chart-title" id="singles-trend-title">Cumulative net units — singles</h3>
+        <p class="section-desc">Chronological flat-stake results; voids return stake. This is separate from accumulator performance.</p>
+      </div>
+      <div id="singles-net-trend" class="singles-net-trend" aria-live="polite"><div class="state-panel">Loading settled selection trend…</div></div>
+    </section>
 
     <div class="breakdown-grid">
       <section class="breakdown-box" aria-labelledby="monthly-performance-title">
@@ -1202,6 +1268,7 @@
       </div>
     </div>
 
+    <p class="active-access-notice" id="activeAccessNotice" role="status" hidden></p>
     <div class="pricing-grid">
       <article class="price-card">
         <h3 class="price-title">Free tier</h3>
@@ -1225,7 +1292,7 @@
           <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Odds, confidence ratings, and market data</li>
           <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Statistical match rationales</li>
         </ul>
-        <button class="btn btn-primary" onclick="payWithMpesa('daily')">Pay with M-Pesa</button>
+        <button class="btn btn-primary" id="dailyPassButton" onclick="payWithMpesa('daily')">Pay with M-Pesa · KSh 100</button>
       </article>
 
       <article class="price-card featured">
@@ -1238,7 +1305,7 @@
           <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> Every published matchday during your pass</li>
           <li><svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg> One payment for continuous access</li>
         </ul>
-        <button class="btn btn-brand" onclick="payWithMpesa('weekly')">Pay with M-Pesa</button>
+        <button class="btn btn-brand" id="weeklyPassButton" onclick="payWithMpesa('weekly')">Pay with M-Pesa · KSh 500</button>
       </article>
     </div>
 
@@ -1360,6 +1427,11 @@
   </section>
 </main>
 
+<aside class="mobile-purchase-bar" id="mobilePurchaseBar" hidden aria-label="Daily access offer">
+  <span>Unlock today’s ticket <strong>KSh 100</strong></span>
+  <button class="btn btn-brand btn-sm" type="button" onclick="unlockAccess('pricing')">View passes</button>
+</aside>
+
 <footer>
   <div class="footer-container">
     <div>
@@ -1378,6 +1450,7 @@
 
 <script src="/fixture-time.js"></script>
 <script src="/public-insights.js"></script>
+<script src="/phone-number.js"></script>
 <script>
   /* ===================================================================
      STEP 1 ADDITION: Supabase connection + live ticket banner.
@@ -1396,6 +1469,15 @@
      =================================================================== */
   let authMode = 'signin';
   let currentSession = null;
+  let currentAccess = null;
+  let picksAccessState = 'unknown';
+  let pendingPlan = null;
+  let paymentPollTimer = null;
+  let paymentPollInFlight = null;
+  let paymentPollGeneration = 0;
+  let activePaymentPollId = null;
+  let paymentPollDeadline = 0;
+  let currentPaymentAttempt = null;
   let pendingDestination = null;
   let picksRequestSequence = 0;
 
@@ -1685,6 +1767,8 @@
 
   function updateAuthUI(session){
     const previousToken = currentSession?.access_token || null;
+    const previousUserId = currentSession?.user?.id || null;
+    const nextUserId = session?.user?.id || null;
     currentSession = session;
     const signInBtn = document.getElementById('signInBtn');
     const userChip = document.getElementById('userChip');
@@ -1697,6 +1781,26 @@
     } else {
       signInBtn.style.display = 'inline-flex';
       userChip.style.display = 'none';
+    }
+
+    if (previousUserId !== nextUserId) {
+      if (typeof stopPaymentPolling === 'function') stopPaymentPolling();
+      currentPaymentAttempt = null;
+      const paymentModal = document.getElementById('paymentModal');
+      if (paymentModal?.classList.contains('open') && typeof closePaymentModal === 'function') closePaymentModal();
+      document.getElementById('paymentForm').hidden = false;
+      document.getElementById('paymentRecoveryActions').hidden = true;
+      document.getElementById('paymentStatus').textContent = '';
+      document.getElementById('paymentCountdown').textContent = '';
+      document.getElementById('paymentError').style.display = 'none';
+      currentAccess = null;
+      if (typeof updatePricingButtons === 'function') updatePricingButtons();
+      if (typeof updateMobilePurchaseBar === 'function') updateMobilePurchaseBar();
+      if (nextUserId) Promise.resolve().then(() => {
+        if (currentSession?.user?.id !== nextUserId) return;
+        if (typeof refreshAccessStatus === 'function') void refreshAccessStatus(nextUserId);
+        if (typeof restorePendingPayment === 'function') void restorePendingPayment(nextUserId);
+      });
     }
 
     // Refresh server-authorised pick visibility whenever the session changes.
@@ -1874,6 +1978,8 @@
     const requestId = ++picksRequestSequence;
     const grid = document.getElementById('picks-grid');
     const todayEAT = getEATDateKey();
+    picksAccessState = 'unknown';
+    updateMobilePurchaseBar();
     grid.setAttribute('aria-busy', 'true');
     grid.innerHTML = loadingCardsMarkup();
 
@@ -1888,6 +1994,7 @@
         <div><span class="state-title">Today’s picks are unavailable</span>We couldn’t retrieve the latest analysis. Check your connection and retry; no ticket is being fabricated from stale data.</div>
         <div class="state-actions"><button class="btn btn-secondary btn-sm" type="button" onclick="renderPicks()">Retry loading picks</button></div>
       </div>`;
+      updateMobilePurchaseBar();
       return;
     }
 
@@ -1902,9 +2009,13 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3v3m12-3v3M4 9h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg>
         <div><span class="state-title">No published selections for today</span>The analysis may still be pending, or no selection met our quality thresholds. Publication is scheduled for 07:00 EAT; “No Bet” is preferable to a weak selection.</div>
       </div>`;
+      picksAccessState = 'unknown';
+      updateMobilePurchaseBar();
       return;
     }
 
+    picksAccessState = currentPicks.some(pick => !pick.is_unlocked) ? 'locked' : 'unlocked';
+    updateMobilePurchaseBar();
     grid.innerHTML = currentPicks.map(p => {
       const league = escapeHTML(p.league || 'League TBC');
       const homeTeam = escapeHTML(p.home_team);
@@ -1941,7 +2052,7 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
                   <p>The prediction and analytical breakdown are available with an active pass.</p>
                 </div>
-                <button class="btn btn-secondary btn-sm btn-block" onclick="unlockAccess('pricing')">View access options</button>
+                <button class="btn btn-secondary btn-sm btn-block" onclick="unlockAccess('pricing')">View passes · from KSh 100</button>
               </div>
             `}
           </div>
@@ -2165,6 +2276,47 @@
     `).join('') : '<tr><td colspan="6">No settled accumulator record yet.</td></tr>';
   }
 
+  function renderSinglesNetTrend(selections){
+    const target = document.getElementById('singles-net-trend');
+    const trend = PublicInsights.cumulativeNetUnits(selections);
+    if (!trend.samples) {
+      target.innerHTML = '<div class="state-panel">No settled selections are available for a cumulative trend yet.</div>';
+      return;
+    }
+    if (!trend.complete) {
+      target.innerHTML = `<div class="state-panel">Cumulative net units are unavailable: ${trend.missingPrices} of ${trend.samples} settled selections lack a valid recorded price. Missing odds are not treated as zero.</div>`;
+      return;
+    }
+
+    const stride = Math.max(1, Math.ceil(trend.points.length / 80));
+    const points = trend.points.filter((_, index) => index % stride === 0 || index === trend.points.length - 1);
+    const values = points.map(point => point.netUnits);
+    const minValue = Math.min(0, ...values);
+    const maxValue = Math.max(0, ...values);
+    const range = Math.max(1, maxValue - minValue);
+    const width = 720;
+    const height = 180;
+    const padding = 18;
+    const coordinates = points.map((point, index) => {
+      const x = points.length === 1 ? width / 2 : padding + index * (width - padding * 2) / (points.length - 1);
+      const y = padding + (maxValue - point.netUnits) * (height - padding * 2) / range;
+      return { x, y };
+    });
+    const polyline = coordinates.map(point => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
+    const zeroY = padding + maxValue * (height - padding * 2) / range;
+    const firstDate = points[0].ticket_date || 'unknown date';
+    const lastDate = points[points.length - 1].ticket_date || 'unknown date';
+    const finalText = formatPerformanceUnits(trend.finalUnits);
+    target.innerHTML = `<svg viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="singles-trend-svg-title singles-trend-svg-desc">
+      <title id="singles-trend-svg-title">Cumulative singles net units</title>
+      <desc id="singles-trend-svg-desc">${trend.samples} chronological settled selections from ${escapeHTML(firstDate)} to ${escapeHTML(lastDate)}. Final cumulative net result ${escapeHTML(finalText)}.</desc>
+      <line class="trend-gridline" x1="${padding}" y1="${zeroY.toFixed(1)}" x2="${width-padding}" y2="${zeroY.toFixed(1)}"></line>
+      <polyline class="trend-line" points="${polyline}"></polyline>
+      <circle class="trend-point" cx="${coordinates.at(-1).x.toFixed(1)}" cy="${coordinates.at(-1).y.toFixed(1)}" r="5"></circle>
+    </svg>
+    <p class="trend-summary">${trend.samples} settled singles · ${escapeHTML(firstDate)} to ${escapeHTML(lastDate)} · Final cumulative result: <strong>${escapeHTML(finalText)}</strong></p>`;
+  }
+
   async function renderPerformance(){
     const metricIds = [
       'acca-total', 'acca-won', 'acca-lost', 'acca-rate',
@@ -2214,6 +2366,7 @@
       document.getElementById('performance-acca-monthly').innerHTML = '<tr><td colspan="6">Accumulator record unavailable.</td></tr>';
       document.getElementById('performance-monthly').innerHTML = '<tr><td colspan="6">Monthly record unavailable.</td></tr>';
       document.getElementById('performance-leagues').innerHTML = '<tr><td colspan="6">League record unavailable.</td></tr>';
+      document.getElementById('singles-net-trend').innerHTML = '<div class="state-panel error">Settled selection trend is temporarily unavailable.</div>';
       bars.innerHTML = `<div class="state-panel error">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
         <div><span class="state-title">Performance unavailable</span>Settled performance could not be retrieved right now.</div>
@@ -2225,6 +2378,7 @@
     const accumulatorTickets = PublicInsights.buildAccumulatorTickets(data || []);
     const accumulator = PublicInsights.calculateAccumulatorPerformance(accumulatorTickets);
     const selections = uniquePublishedSelections(data).filter(row => ['win', 'loss', 'void'].includes(row?.outcome));
+    renderSinglesNetTrend(selections);
     const outcomeCounts = PublicInsights.countOutcomes(selections);
     const economics = PublicInsights.calculatePerformance(selections);
     const won = outcomeCounts.win;
@@ -2335,17 +2489,21 @@
     toggle.setAttribute('aria-label', 'Open navigation');
   }
 
-  function goTo(pageId){
+  function pageFromLocationHash(){
+    const rawHash = window.location.hash.replace(/^#/, '');
+    if (!rawHash) return null;
+    const params = new URLSearchParams(rawHash);
+    if ([...params.keys()].length !== 1 || params.getAll('page').length !== 1) return null;
+    const pageId = params.get('page');
+    return Object.prototype.hasOwnProperty.call(PAGE_TITLES, pageId) ? pageId : null;
+  }
+
+  function goTo(pageId, options = {}){
     const targetPage = document.getElementById('page-' + pageId);
-    if (!targetPage) return;
+    if (!targetPage || !Object.prototype.hasOwnProperty.call(PAGE_TITLES, pageId)) return;
     closeMobileMenu();
 
     if (AUTH_REQUIRED_PAGES.includes(pageId) && !currentSession) {
-      const mobileSelect = document.getElementById('mobileNavSelect');
-      if (mobileSelect) {
-        const activePage = document.querySelector('.page.active');
-        if (activePage) mobileSelect.value = activePage.id.replace('page-', '');
-      }
       pendingDestination = pageId;
       openAuthModal('signin');
       return;
@@ -2353,24 +2511,43 @@
 
     document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
     targetPage.classList.add('active');
+    targetPage.setAttribute('tabindex', '-1');
     document.querySelectorAll('.nav-links a[data-page], .mobile-nav-links a[data-page]').forEach(link => {
       const active = link.dataset.page === pageId;
       link.classList.toggle('active', active);
       if (active) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
     });
-    const mobileSelect = document.getElementById('mobileNavSelect');
-    if (mobileSelect) mobileSelect.value = pageId;
     document.title = PAGE_TITLES[pageId] || PAGE_TITLES.home;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (options.updateHistory !== false && !hasRecoveryHash() && pageFromLocationHash() !== pageId) {
+      const nextUrl = `${window.location.pathname}${window.location.search}#page=${encodeURIComponent(pageId)}`;
+      window.history.pushState({ pageId }, '', nextUrl);
+    }
+    if (typeof targetPage.focus === 'function') targetPage.focus({ preventScroll: true });
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reducedMotion ? 'auto' : 'smooth' });
+    updateMobilePurchaseBar();
   }
 
+  function syncPageFromLocation(){
+    // Password-recovery hashes contain Supabase tokens. Leave them untouched
+    // until Supabase has consumed them and opened the recovery form.
+    if (hasRecoveryHash()) return;
+    const pageId = pageFromLocationHash();
+    if (pageId) goTo(pageId, { updateHistory: false });
+  }
+
+  window.addEventListener('hashchange', syncPageFromLocation);
+  window.addEventListener('popstate', syncPageFromLocation);
   document.querySelectorAll('.nav-links a[data-page], .mobile-nav-links a[data-page]').forEach(link => {
     link.addEventListener('click', event => {
       event.preventDefault();
       goTo(link.dataset.page);
     });
   });
+  const initialPage = pageFromLocationHash();
+  if (initialPage && !hasRecoveryHash()) goTo(initialPage, { updateHistory: false });
 
   window.addEventListener('resize', () => {
     if (window.innerWidth > 820) closeMobileMenu();
@@ -2404,15 +2581,29 @@
     }
   });
 
-  let pendingPlan = null;
-  let paymentPollTimer = null;
-
+  const PAYMENT_STORAGE_PREFIX = 'football-pulse.pending-payment.';
+  const PAYMENT_POLL_INTERVAL_MS = 3000;
+  const PAYMENT_POLL_WINDOW_MS = 60000;
   const PLAN_LABELS = { daily: 'Daily Pass, KSh 100', weekly: 'Weekly Pass, KSh 500' };
   const PLAN_DETAILS = {
     daily: { title: 'Daily Pass', duration: '24 hours', amount: 100 },
     weekly: { title: 'Weekly Pass', duration: '7 days', amount: 500 }
   };
   const PAYMENT_STEP_IDS = ['payment-step-request', 'payment-step-prompt', 'payment-step-confirm', 'payment-step-access'];
+  const SAFE_PAYMENT_MESSAGES = new Set([
+    'Missing authorization.', 'Unauthorized.', 'Invalid plan.',
+    'Enter a valid Kenyan mobile number (07xx, 01xx, or +254).',
+    'A payment is already awaiting confirmation. Check its status before starting another request.',
+    'A payment attempt is already being processed or needs support. Do not pay again; contact paid-access support.',
+    'Could not initiate M-Pesa payment. Please check your number and try again.',
+    'The provider accepted the request but did not return a tracking ID. Contact support before paying again.',
+    'Payment may have been initiated, but tracking could not be saved. Do not pay again; contact support.',
+    'Payment may have been initiated. Do not pay again; contact support.',
+    'Payment service is temporarily unavailable. Please try again later.',
+    'Payment confirmation is temporarily unavailable.',
+    'Payment record could not be verified.',
+    'Missing or invalid checkoutRequestId.'
+  ]);
 
   function setPaymentStage(stage){
     const statuses = PublicInsights.paymentStage(stage);
@@ -2428,33 +2619,149 @@
     });
   }
 
+  function paymentStorageKey(userId){
+    return `${PAYMENT_STORAGE_PREFIX}${userId}`;
+  }
+
+  function loadPaymentAttempt(userId){
+    if (!userId) return null;
+    try {
+      const raw = sessionStorage.getItem(paymentStorageKey(userId));
+      if (!raw) return null;
+      const attempt = JSON.parse(raw);
+      if (typeof attempt?.checkoutRequestId !== 'string' || attempt.checkoutRequestId.length < 1 || attempt.checkoutRequestId.length > 200 || !['daily', 'weekly'].includes(attempt.plan)) return null;
+      if (attempt.userId !== userId) return null;
+      return attempt;
+    } catch {
+      return null;
+    }
+  }
+
+  function savePaymentAttempt(attempt){
+    if (!currentSession?.user?.id || typeof attempt?.checkoutRequestId !== 'string' || attempt.checkoutRequestId.length < 1 || attempt.checkoutRequestId.length > 200) return;
+    currentPaymentAttempt = {
+      checkoutRequestId: attempt.checkoutRequestId,
+      plan: ['daily', 'weekly'].includes(attempt.plan) ? attempt.plan : (pendingPlan || 'daily'),
+      createdAt: attempt.createdAt || new Date().toISOString(),
+      userId: currentSession.user.id
+    };
+    try { sessionStorage.setItem(paymentStorageKey(currentSession.user.id), JSON.stringify(currentPaymentAttempt)); } catch { /* Keep the in-memory flow usable if storage is blocked. */ }
+  }
+
+  function stopPaymentPolling(){
+    if (paymentPollTimer) clearTimeout(paymentPollTimer);
+    paymentPollTimer = null;
+    activePaymentPollId = null;
+    paymentPollDeadline = 0;
+    paymentPollGeneration++;
+  }
+
+  function clearPaymentAttempt(){
+    stopPaymentPolling();
+    if (currentSession?.user?.id) {
+      try { sessionStorage.removeItem(paymentStorageKey(currentSession.user.id)); } catch { /* Ignore unavailable storage. */ }
+    }
+    currentPaymentAttempt = null;
+  }
+
+  function formatAccessExpiry(value){
+    const date = new Date(value);
+    if (!value || Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat('en-KE', {
+      timeZone: 'Africa/Nairobi', dateStyle: 'medium', timeStyle: 'short'
+    }).format(date) + ' EAT';
+  }
+
+  function updatePricingButtons(){
+    const dailyButton = document.getElementById('dailyPassButton');
+    const weeklyButton = document.getElementById('weeklyPassButton');
+    const notice = document.getElementById('activeAccessNotice');
+    const hasActivePass = Boolean(currentAccess?.hasActivePass);
+    if (dailyButton) dailyButton.textContent = hasActivePass ? 'Extend access · KSh 100' : 'Pay with M-Pesa · KSh 100';
+    if (weeklyButton) weeklyButton.textContent = hasActivePass ? 'Extend access · KSh 500' : 'Pay with M-Pesa · KSh 500';
+    if (notice) {
+      notice.hidden = !hasActivePass;
+      notice.textContent = hasActivePass
+        ? `Your pass is active through ${formatAccessExpiry(currentAccess.expiresAt)}. A new pass will extend access after that time.`
+        : '';
+    }
+  }
+
+  function updateMobilePurchaseBar(){
+    const bar = document.getElementById('mobilePurchaseBar');
+    if (!bar) return;
+    const activePage = document.querySelector('.page.active')?.id;
+    const shouldShow = ['page-home', 'page-picks'].includes(activePage) &&
+      picksAccessState === 'locked' && !currentAccess?.hasActivePass;
+    bar.hidden = !shouldShow;
+  }
+
+  function setPaymentSummary(plan){
+    pendingPlan = ['daily', 'weekly'].includes(plan) ? plan : 'daily';
+    const details = PLAN_DETAILS[pendingPlan];
+    document.getElementById('payment-summary-plan').textContent = details.title;
+    document.getElementById('payment-summary-duration').textContent = details.duration;
+    document.getElementById('payment-summary-amount').textContent = `KSh ${details.amount}`;
+    const extensionCopy = currentAccess?.hasActivePass
+      ? ` Your existing pass runs through ${formatAccessExpiry(currentAccess.expiresAt)}; this purchase will extend access after it.`
+      : '';
+    document.getElementById('paymentModalSub').textContent =
+      `${PLAN_LABELS[pendingPlan]}. Enter your Safaricom number to receive an STK push.${extensionCopy}`;
+  }
+
+  function openPaymentModal(focusTarget = 'paymentPhone'){
+    const modal = document.getElementById('paymentModal');
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+    if (focusTarget) setTimeout(() => document.getElementById(focusTarget)?.focus(), 40);
+  }
+
+  function showPendingPayment(attempt, message = 'Check your phone and enter your M-Pesa PIN. Do not send another payment request while this one is pending.'){
+    currentPaymentAttempt = attempt;
+    pendingPlan = attempt.plan;
+    setPaymentSummary(attempt.plan);
+    document.getElementById('paymentForm').hidden = true;
+    document.getElementById('paymentRecoveryActions').hidden = false;
+    document.getElementById('paymentCheckStatusBtn').disabled = true;
+    document.getElementById('paymentCheckStatusBtn').textContent = 'Checking status…';
+    document.getElementById('paymentError').style.display = 'none';
+    document.getElementById('paymentStatus').textContent = message;
+    document.getElementById('paymentStatus').style.color = '';
+    document.getElementById('paymentCountdown').textContent = 'Automatic status checks are running.';
+    document.getElementById('paymentSubmitBtn').disabled = true;
+    setPaymentStage('awaiting');
+  }
+
   function payWithMpesa(plan){
     if (!currentSession) {
       pendingDestination = 'pricing';
       openAuthModal('signin');
       return;
     }
-    pendingPlan = plan;
-    const planDetails = PLAN_DETAILS[plan] || PLAN_DETAILS.daily;
-    document.getElementById('payment-summary-plan').textContent = planDetails.title;
-    document.getElementById('payment-summary-duration').textContent = planDetails.duration;
-    document.getElementById('payment-summary-amount').textContent = `KSh ${planDetails.amount}`;
-    setPaymentStage('idle');
     lastFocusedElement = document.activeElement;
-    document.getElementById('paymentModalSub').textContent =
-      `${PLAN_LABELS[plan] || 'Access'}. Enter your Safaricom number to receive an STK push.`;
+    const savedAttempt = loadPaymentAttempt(currentSession.user.id);
+    if (savedAttempt) {
+      showPendingPayment(savedAttempt);
+      openPaymentModal('paymentCheckStatusBtn');
+      pollPaymentStatus(savedAttempt.checkoutRequestId);
+      return;
+    }
+
+    currentPaymentAttempt = null;
+    setPaymentSummary(plan);
+    setPaymentStage('idle');
     document.getElementById('paymentPhone').value = '';
+    document.getElementById('paymentPhonePreview').textContent = '';
     document.getElementById('paymentError').style.display = 'none';
-    const status = document.getElementById('paymentStatus');
-    status.textContent = '';
-    status.style.color = '';
+    document.getElementById('paymentStatus').textContent = '';
+    document.getElementById('paymentStatus').style.color = '';
+    document.getElementById('paymentCountdown').textContent = '';
+    document.getElementById('paymentForm').hidden = false;
+    document.getElementById('paymentRecoveryActions').hidden = true;
     document.getElementById('paymentSubmitBtn').disabled = false;
-    document.getElementById('paymentSubmitBtn').textContent = 'Send request';
-    const modal = document.getElementById('paymentModal');
-    modal.classList.add('open');
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('modal-open');
-    setTimeout(() => document.getElementById('paymentPhone').focus(), 40);
+    document.getElementById('paymentSubmitBtn').textContent = currentAccess?.hasActivePass ? 'Extend access' : 'Send request';
+    openPaymentModal('paymentPhone');
   }
 
   function closePaymentModal(){
@@ -2462,12 +2769,43 @@
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('modal-open');
-    if (paymentPollTimer) { clearInterval(paymentPollTimer); paymentPollTimer = null; }
+    // A pending status check continues in the background and its ID survives a refresh.
     if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') lastFocusedElement.focus();
   }
 
+  function updatePaymentPhonePreview(){
+    const input = document.getElementById('paymentPhone');
+    const preview = document.getElementById('paymentPhonePreview');
+    if (!input || !preview || !window.PulsePhone) return;
+    const normalized = PulsePhone.normalizeKenyanMobile(input.value);
+    preview.textContent = normalized ? `STK request will be sent to ${PulsePhone.maskKenyanMobile(normalized)}.` : '';
+  }
+
+  async function readPaymentError(error){
+    let body = null;
+    try {
+      if (error?.context && typeof error.context.json === 'function') body = await error.context.json();
+    } catch { /* Non-JSON function errors fall through to a safe generic message. */ }
+    const candidate = typeof body?.error === 'string' ? body.error : '';
+    return {
+      body: body || {},
+      message: SAFE_PAYMENT_MESSAGES.has(candidate) ? candidate : 'We could not confirm the payment request. Check your M-Pesa messages and contact support before trying again.'
+    };
+  }
+
+  function isDefiniteNoPaymentResponse(result){
+    // Retry only on an explicit server decision that the attempt is safe;
+    // never infer that from a message or an ambiguous network response.
+    return result?.body?.safeToRetry === true && !result.body.supportReference;
+  }
+
   async function submitPayment(){
-    const phone = document.getElementById('paymentPhone').value.trim();
+    if (currentPaymentAttempt) {
+      showPendingPayment(currentPaymentAttempt);
+      return;
+    }
+    const rawPhone = document.getElementById('paymentPhone').value.trim();
+    const phone = window.PulsePhone?.normalizeKenyanMobile(rawPhone);
     const errEl = document.getElementById('paymentError');
     const statusEl = document.getElementById('paymentStatus');
     const submitBtn = document.getElementById('paymentSubmitBtn');
@@ -2476,8 +2814,9 @@
     statusEl.style.color = '';
 
     if (!phone) {
-      errEl.textContent = 'Enter your phone number.';
+      errEl.textContent = 'Enter a valid Kenyan mobile number beginning 07, 01, +254 7, or +254 1.';
       errEl.style.display = 'block';
+      document.getElementById('paymentPhone').focus();
       return;
     }
 
@@ -2486,84 +2825,203 @@
     setPaymentStage('requesting');
     statusEl.textContent = 'Requesting STK push…';
 
-    // sb.functions.invoke automatically attaches the signed-in user's
-    // Authorization header — the stk-push Edge Function uses that to
-    // identify who is paying and create the matching pending-payment row.
-    const { data, error } = await sb.functions.invoke('stk-push', {
-      body: { phone, plan: pendingPlan }
-    });
+    let data = null;
+    let error = null;
+    try {
+      ({ data, error } = await sb.functions.invoke('stk-push', { body: { phone, plan: pendingPlan } }));
+    } catch (requestError) {
+      error = requestError;
+    }
 
     if (error) {
-      errEl.textContent = error.message || 'Something went wrong. Please try again.';
+      const result = await readPaymentError(error);
+      if (result.body.checkoutRequestId && result.body.status === 'pending') {
+        savePaymentAttempt({
+          checkoutRequestId: result.body.checkoutRequestId,
+          plan: result.body.plan || pendingPlan,
+          createdAt: result.body.createdAt
+        });
+        showPendingPayment(currentPaymentAttempt, 'An earlier payment is still awaiting confirmation. We will check that request instead of starting another.');
+        pollPaymentStatus(currentPaymentAttempt.checkoutRequestId);
+        return;
+      }
+
+      errEl.textContent = result.message;
       errEl.style.display = 'block';
-      statusEl.textContent = 'Request failed. No STK push was confirmed; check your phone before retrying.';
+      const safeToRetry = isDefiniteNoPaymentResponse(result);
+      if (result.body.supportReference) statusEl.textContent = `Do not pay again. Support reference: ${result.body.supportReference}.`;
+      else statusEl.textContent = safeToRetry
+        ? 'No STK request is awaiting confirmation. You may correct the details and retry.'
+        : 'We could not confirm whether the provider received the request. Do not pay again; contact support.';
       statusEl.style.color = 'var(--red)';
       setPaymentStage('error');
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Send request';
-      return;
-    }
-    if (!data || !data.checkoutRequestId) {
-      errEl.textContent = (data && data.error) || 'Payment could not be started.';
-      errEl.style.display = 'block';
-      statusEl.textContent = 'Request failed. No STK push was confirmed; check your phone before retrying.';
-      statusEl.style.color = 'var(--red)';
-      setPaymentStage('error');
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Send request';
+      if (safeToRetry) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = currentAccess?.hasActivePass ? 'Extend access' : 'Send request';
+      } else {
+        document.getElementById('paymentForm').hidden = true;
+        document.getElementById('paymentRecoveryActions').hidden = true;
+      }
       return;
     }
 
-    setPaymentStage('awaiting');
-    statusEl.textContent = 'Check your phone and enter your M-Pesa PIN…';
+    if (!data?.checkoutRequestId) {
+      errEl.textContent = 'We could not confirm that a payment request was created.';
+      errEl.style.display = 'block';
+      statusEl.textContent = 'Do not send another request yet. Check your M-Pesa messages and contact paid-access support.';
+      statusEl.style.color = 'var(--red)';
+      setPaymentStage('error');
+      document.getElementById('paymentForm').hidden = true;
+      return;
+    }
+
+    savePaymentAttempt({
+      checkoutRequestId: data.checkoutRequestId,
+      plan: data.plan || pendingPlan,
+      createdAt: data.createdAt
+    });
+    document.getElementById('paymentRecoveryActions').hidden = false;
+    document.getElementById('paymentForm').hidden = true;
+    showPendingPayment(currentPaymentAttempt, 'STK request sent. Check your phone and enter your M-Pesa PIN.');
     pollPaymentStatus(data.checkoutRequestId);
   }
 
-  function pollPaymentStatus(checkoutRequestId){
-    let attempts = 0;
-    const maxAttempts = 20; // ~60s at 3s intervals
-    if (paymentPollTimer) clearInterval(paymentPollTimer);
+  function restorePendingPayment(userId){
+    const saved = loadPaymentAttempt(userId);
+    if (!saved || currentSession?.user?.id !== userId) return;
+    currentPaymentAttempt = saved;
+    showPendingPayment(saved, 'Resuming the saved payment status check. Do not initiate another payment while it is pending.');
+    pollPaymentStatus(saved.checkoutRequestId);
+  }
 
-    paymentPollTimer = setInterval(async () => {
-      attempts++;
-      // Polls our own check-status Edge Function, which asks PayHero whether
-      // payment completed rather than reading the subscriptions table directly;
-      // access is written only after provider confirmation.
-      const { data, error } = await sb.functions.invoke('check-status', {
-        body: { checkoutRequestId }
-      });
+  async function refreshAccessStatus(userId){
+    if (!userId || currentSession?.user?.id !== userId) return;
+    try {
+      const { data, error } = await sb.functions.invoke('check-status', { body: { action: 'access' } });
+      if (error || currentSession?.user?.id !== userId) return;
+      currentAccess = data && typeof data.hasActivePass === 'boolean' ? data : null;
+      updatePricingButtons();
+      updateMobilePurchaseBar();
+    } catch {
+      // Premium access still remains server-enforced by get_daily_picks().
+      currentAccess = null;
+      updatePricingButtons();
+    }
+  }
 
-      if (error) return; // transient — keep polling until maxAttempts
+  async function checkPaymentStatus(){
+    const attempt = currentPaymentAttempt || loadPaymentAttempt(currentSession?.user?.id);
+    if (!attempt || !currentSession) return;
+    document.getElementById('paymentCheckStatusBtn').disabled = true;
+    document.getElementById('paymentCheckStatusBtn').textContent = 'Checking status…';
+    document.getElementById('paymentStatus').textContent = 'Checking PayHero for confirmation…';
+    pollPaymentStatus(attempt.checkoutRequestId, { restartWindow: true });
+  }
 
-      const statusEl = document.getElementById('paymentStatus');
-      const submitBtn = document.getElementById('paymentSubmitBtn');
+  function finishPaymentFailure(){
+    clearPaymentAttempt();
+    document.getElementById('paymentRecoveryActions').hidden = true;
+    document.getElementById('paymentForm').hidden = false;
+    document.getElementById('paymentPhone').value = '';
+    document.getElementById('paymentPhonePreview').textContent = '';
+    document.getElementById('paymentSubmitBtn').disabled = false;
+    document.getElementById('paymentSubmitBtn').textContent = 'Start a new payment';
+    document.getElementById('paymentStatus').textContent = 'The provider reports that the previous request was not completed. You may start a new payment, or contact support if money was deducted.';
+    document.getElementById('paymentStatus').style.color = 'var(--red)';
+    document.getElementById('paymentCountdown').textContent = '';
+    setPaymentStage('failed');
+  }
 
-      if (data && data.status === 'success') {
-        clearInterval(paymentPollTimer);
-        statusEl.textContent = 'Payment confirmed! Unlocking picks…';
-        statusEl.style.color = 'var(--brand)';
-        setPaymentStage('success');
-        setTimeout(async () => {
-          closePaymentModal();
-          await renderPicks();
-          goTo('picks');
-        }, 800);
-      } else if (data && data.status === 'failed') {
-        clearInterval(paymentPollTimer);
-        statusEl.textContent = 'Payment was not completed.';
-        statusEl.style.color = 'var(--red)';
-        setPaymentStage('failed');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Try Again';
-      } else if (attempts >= maxAttempts) {
-        clearInterval(paymentPollTimer);
-        statusEl.textContent = 'Still waiting for confirmation. Check your phone or M-Pesa messages before retrying.';
-        statusEl.style.color = 'var(--red)';
-        setPaymentStage('timeout');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Try Again';
+  function pollPaymentStatus(checkoutRequestId, options = {}){
+    if (!currentSession || !checkoutRequestId) return;
+    if (activePaymentPollId === checkoutRequestId && (paymentPollTimer || paymentPollInFlight?.checkoutRequestId === checkoutRequestId && paymentPollInFlight.generation === paymentPollGeneration)) return;
+    if (paymentPollTimer) clearTimeout(paymentPollTimer);
+    const generation = ++paymentPollGeneration;
+    activePaymentPollId = checkoutRequestId;
+    paymentPollDeadline = Date.now() + PAYMENT_POLL_WINDOW_MS;
+    if (options.restartWindow) paymentPollDeadline = Date.now() + PAYMENT_POLL_WINDOW_MS;
+
+    const checkOnce = async () => {
+      if (generation !== paymentPollGeneration || !currentSession || currentPaymentAttempt?.checkoutRequestId !== checkoutRequestId) return;
+      paymentPollTimer = null;
+      paymentPollInFlight = { checkoutRequestId, generation };
+      let data = null;
+      let error = null;
+      try {
+        ({ data, error } = await sb.functions.invoke('check-status', { body: { checkoutRequestId } }));
+      } catch (requestError) {
+        error = requestError;
+      } finally {
+        if (paymentPollInFlight?.generation === generation) paymentPollInFlight = null;
       }
-    }, 3000);
+      if (generation !== paymentPollGeneration || !currentSession || currentPaymentAttempt?.checkoutRequestId !== checkoutRequestId) return;
+
+      if (error) {
+        const result = await readPaymentError(error);
+        if (result.body.status === 'unknown') {
+          stopPaymentPolling();
+          document.getElementById('paymentStatus').textContent = 'We could not match this request to your account. Do not pay again; contact paid-access support.';
+          document.getElementById('paymentStatus').style.color = 'var(--red)';
+          document.getElementById('paymentCountdown').textContent = '';
+          document.getElementById('paymentRecoveryActions').hidden = false;
+          document.getElementById('paymentCheckStatusBtn').disabled = false;
+          document.getElementById('paymentCheckStatusBtn').textContent = 'Check status again';
+          return;
+        }
+        document.getElementById('paymentStatus').textContent = 'Status check temporarily unavailable; we will safely try again.';
+      } else if (data?.status === 'success') {
+        const shouldNavigate = document.getElementById('paymentModal').classList.contains('open');
+        clearPaymentAttempt();
+        document.getElementById('paymentStatus').textContent = 'Payment confirmed and access activated.';
+        document.getElementById('paymentStatus').style.color = 'var(--brand)';
+        document.getElementById('paymentCountdown').textContent = '';
+        document.getElementById('paymentRecoveryActions').hidden = true;
+        document.getElementById('paymentForm').hidden = true;
+        setPaymentStage('success');
+        await refreshAccessStatus(currentSession.user.id);
+        await renderPicks();
+        if (shouldNavigate) setTimeout(() => {
+          if (document.getElementById('paymentModal').classList.contains('open')) {
+            closePaymentModal();
+            goTo('picks');
+          }
+        }, 800);
+        return;
+      } else if (data?.status === 'failed') {
+        finishPaymentFailure();
+        return;
+      }
+
+      const remaining = paymentPollDeadline - Date.now();
+      if (remaining <= 0) {
+        paymentPollTimer = null;
+        document.getElementById('paymentStatus').textContent = 'Still waiting for confirmation. Do not pay again while this request is pending.';
+        document.getElementById('paymentStatus').style.color = 'var(--red)';
+        document.getElementById('paymentCountdown').textContent = 'Automatic checks paused. You can check this same request again.';
+        document.getElementById('paymentRecoveryActions').hidden = false;
+        document.getElementById('paymentCheckStatusBtn').disabled = false;
+        document.getElementById('paymentCheckStatusBtn').textContent = 'Check status again';
+        setPaymentStage('timeout');
+        return;
+      }
+
+      document.getElementById('paymentCountdown').textContent = `Automatic checks will continue for about ${Math.ceil(remaining / 1000)} seconds.`;
+      document.getElementById('paymentRecoveryActions').hidden = false;
+      document.getElementById('paymentCheckStatusBtn').disabled = true;
+      document.getElementById('paymentCheckStatusBtn').textContent = 'Checking status…';
+      paymentPollTimer = setTimeout(checkOnce, Math.min(PAYMENT_POLL_INTERVAL_MS, remaining));
+    };
+
+    void checkOnce();
+  }
+
+  document.getElementById('paymentPhone').addEventListener('input', updatePaymentPhonePreview);
+  updatePricingButtons();
+  updateMobilePurchaseBar();
+  if ('serviceWorker' in navigator && (window.isSecureContext || location.hostname === 'localhost')) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(error => {
+      console.warn('[PWA] Service worker registration failed:', error?.message || error);
+    }));
   }
 
   renderPicks();
