@@ -52,7 +52,7 @@ test('payment stages require checkout and provider confirmation before activatio
 
 test('static integration uses real-data containers and no fabricated demo metrics or unlock timer', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-  assert.match(html, /<script src="\/public-insights\.js"><\/script>\s*<script>/);
+  assert.match(html, /<script src="\/public-insights\.js"><\/script>\s*<script src="\/phone-number\.js"><\/script>\s*<script>/);
   ['all', 'win', 'loss', 'void'].forEach(filter => {
     assert.match(html, new RegExp(`data-result-filter="${filter}"`));
   });
